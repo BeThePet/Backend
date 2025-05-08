@@ -8,7 +8,9 @@ class TimeStampMixin:
 
     @declared_attr
     def updated_at(cls):
-        return Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+        return Column(
+            DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+        )
 
     @declared_attr
     def deleted_at(cls):
