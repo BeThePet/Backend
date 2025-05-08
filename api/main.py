@@ -1,23 +1,17 @@
+from db.base import Base
 from fastapi import FastAPI
-from sqlalchemy import text
 
-from api.db.session import SessionLocal
+from api.db.session import engine
 from api.routers import user
 
 app = FastAPI()
 
+
+# DB 테이블 자동 생성
+@app.on_event("startup")
+def on_startup():
+    Base.metadata.create_all(bind=engine)
+
+
 # 라우터 등록
 app.include_router(user.router, prefix="/users", tags=["User"])
-
-
-@app.get("/")
-def read_root():
-    try:
-        db = SessionLocal()
-        # 연결 테스트용 쿼리 — PostgreSQL 기준
-        db.execute(text("SELECT 1"))
-        return {"message": "RDS 연결 성공"}
-    except Exception as e:
-        return {"error": str(e)}
-    finally:
-        db.close()

@@ -1,6 +1,5 @@
 services:
   bethepet_api:
-    container_name: bethepet_api
     build:
       context: .
       dockerfile: Dockerfile

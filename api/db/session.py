@@ -15,3 +15,13 @@ DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NA
 
 engine = create_engine(DATABASE_URL, echo=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+from sqlalchemy.orm import Session
+from fastapi import Depends
+
+def get_db() -> Session:
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
