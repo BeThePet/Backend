@@ -12,4 +12,6 @@ RUN poetry config virtualenvs.create false \
 
 COPY . .
 
+ENV PYTHONPATH=/app/api
+
 CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]
