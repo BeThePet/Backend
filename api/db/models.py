@@ -22,9 +22,9 @@ class Dog(Base, TimeStampMixin):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(100), nullable=False)
     birth_date = Column(Date, nullable=False)
-    age_group = Column(String(20), nullable=False)  # 주니어, 성견, 시니어
+    age_group = Column(String(20), nullable=False)  
     weight = Column(Float, nullable=False)
-    gender = Column(String(10), nullable=False)  # 남아, 여아, 중성화
+    gender = Column(String(10), nullable=False)  
     current_medication = Column(String(255), nullable=True)
 
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
@@ -34,6 +34,7 @@ class Dog(Base, TimeStampMixin):
     breed = relationship("Breed")
     allergies = relationship("DogAllergy", back_populates="dog")
     diseases = relationship("DogDisease", back_populates="dog")
+    mbti = relationship("DogMbti", back_populates="dog", uselist=False)
 
 
 class Breed(Base):
@@ -112,3 +113,14 @@ class DogDisease(Base):
 
     dog = relationship("Dog", back_populates="diseases")
     disease = relationship("Disease")
+
+
+class DogMbti(Base):
+    __tablename__ = "dog_mbtis"
+
+    id = Column(Integer, primary_key=True)
+    dog_id = Column(Integer, ForeignKey("dogs.id"), nullable=False, unique=True)
+    mbti_type = Column(String(4), nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    dog = relationship("Dog", back_populates="mbti")

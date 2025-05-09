@@ -1,7 +1,8 @@
-from pydantic import BaseModel
-from typing import Optional, List
 from datetime import date
 from enum import Enum
+from typing import List, Optional
+
+from pydantic import BaseModel
 
 
 class AgeGroup(str, Enum):
@@ -21,7 +22,7 @@ class DogCreate(BaseModel):
     birthdate: date
     age_group: AgeGroup
     weight: float
-    breed_id: Optional[int]  #품종 선택-기타일 경우 null
+    breed_id: Optional[int]  # 품종 선택-기타일 경우 null
     gender: Gender
     medication: Optional[str] = None
     allergy_ids: List[int] = []
@@ -43,6 +44,7 @@ class DogResponse(BaseModel):
     class Config:
         from_attributes = True
 
+
 class OptionItem(BaseModel):
     id: int
     name: str
@@ -59,3 +61,15 @@ class AllergyOption(BaseModel):
 class DiseaseOption(BaseModel):
     category: str
     items: List[OptionItem]
+
+
+class MbtiResultCreate(BaseModel):
+    mbti_type: str
+
+
+class MbtiResultResponse(BaseModel):
+    mbti_type: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
