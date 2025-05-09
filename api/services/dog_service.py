@@ -43,7 +43,7 @@ class DogService:
 
         dog = Dog(
             name=dog_data.name,
-            birthdate=dog_data.birthdate,
+            birth_date=dog_data.birth_date,
             age_group=dog_data.age_group,
             weight=dog_data.weight,
             breed_id=dog_data.breed_id,
@@ -97,7 +97,7 @@ class DogService:
             )
 
         dog.name = dog_data.name or dog.name
-        dog.birthdate = dog_data.birthdate or dog.birthdate
+        dog.birth_date = dog_data.birth_date or dog.birth_date
         dog.age_group = dog_data.age_group or dog.age_group
         dog.weight = dog_data.weight or dog.weight
         dog.breed_id = dog_data.breed_id or dog.breed_id
@@ -124,7 +124,7 @@ class DogService:
         return DogResponse(
             id=dog.id,
             name=dog.name,
-            birthdate=dog.birth_date,
+            birth_date=dog.birth_date,
             age_group=dog.age_group,
             weight=dog.weight,
             gender=dog.gender,
@@ -133,3 +133,17 @@ class DogService:
             allergy_names=[da.allergy.name for da in dog.allergies],
             disease_names=[dd.disease.name for dd in dog.diseases],
         )
+
+    @staticmethod
+    def delete_dog(user_id: int, db: Session):
+        dog = db.query(Dog).filter(Dog.user_id == user_id).first()
+        if not dog:
+            raise HTTPException(status_code=404, detail="등록된 반려견이 없습니다.")
+
+        
+        db.query(DogAllergy).filter(DogAllergy.dog_id == dog.id).delete()
+        db.query(DogDisease).filter(DogDisease.dog_id == dog.id).delete()
+
+        
+        db.delete(dog)
+        db.commit()

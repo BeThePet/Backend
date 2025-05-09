@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 from enum import Enum
 from typing import List, Optional
 
@@ -19,7 +19,7 @@ class Gender(str, Enum):
 
 class DogCreate(BaseModel):
     name: str
-    birthdate: date
+    birth_date: date
     age_group: AgeGroup
     weight: float
     breed_id: Optional[int]  # 품종 선택-기타일 경우 null
@@ -29,10 +29,22 @@ class DogCreate(BaseModel):
     disease_ids: List[int] = []
 
 
+class DogUpdate(BaseModel):
+    name: Optional[str] = None
+    birth_date: Optional[date] = None
+    age_group: Optional[AgeGroup] = None
+    weight: Optional[float] = None
+    breed_id: Optional[int] = None
+    gender: Optional[Gender] = None
+    medication: Optional[str] = None
+    allergy_ids: List[int] = []
+    disease_ids: List[int] = []
+
+
 class DogResponse(BaseModel):
     id: int
     name: str
-    birthdate: date
+    birth_date: date
     age_group: AgeGroup
     weight: float
     gender: Gender

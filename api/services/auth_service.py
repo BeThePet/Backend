@@ -45,6 +45,15 @@ class AuthService:
         return new_user
 
     @staticmethod
+    def signup(user_data, db: Session) -> User:
+        return AuthService.create_user(
+            email=user_data.email,
+            password=user_data.password,
+            nickname=user_data.nickname,
+            db=db,
+        )
+
+    @staticmethod
     def clear_auth_cookies(response: Response):
         response.delete_cookie("access_token")
         response.delete_cookie("refresh_token")

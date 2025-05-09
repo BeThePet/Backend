@@ -4,8 +4,10 @@ from db.session import get_db
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from api.schemas.mbti import MbtiResultCreate, MbtiResultResponse
+from api.schemas.dog import MbtiResultCreate, MbtiResultResponse
 from api.services.mbti_service import MbtiService
+
+router = APIRouter()
 
 
 @router.post("/", status_code=204)

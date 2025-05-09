@@ -6,7 +6,7 @@ from db.session import get_db
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from api.schemas.dog import DogCreate, DogListResponse, DogResponse, DogUpdate
+from api.schemas.dog import DogCreate, DogResponse, DogUpdate
 from api.services.dog_service import DogService
 
 router = APIRouter()
@@ -19,7 +19,7 @@ def register_dog(
     current_user: User = Depends(get_current_user),
 ):
     new_dog = DogService.create_dog(current_user.id, dog, db)
-    return new_dog
+    return DogService.to_response(new_dog)
 
 
 @router.get("/", response_model=DogResponse)
@@ -38,7 +38,8 @@ def update_my_dog(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    return DogService.update_dog(current_user.id, updated_dog, db)
+    updated = DogService.update_dog(current_user.id, updated_dog, db)
+    return DogService.to_response(updated)
 
 
 @router.delete("/", status_code=204)
