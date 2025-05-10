@@ -2,7 +2,7 @@ from db.base import Base
 from fastapi import FastAPI
 
 from api.db.session import engine
-from api.routers import dog, mbti, option, user
+from api.routers import dog, health, mbti, option, user
 
 app = FastAPI()
 
@@ -13,7 +13,8 @@ def on_startup():
     Base.metadata.create_all(bind=engine)
 
 
-app.include_router(user.router, prefix="/users", tags=["User"])
+app.include_router(user.router, prefix="/user", tags=["User"])
 app.include_router(dog.router, prefix="/dog", tags=["Dog"])
 app.include_router(option.router, prefix="/option", tags=["Option"])
 app.include_router(mbti.router, prefix="/mbti", tags=["Mbti"])
+app.include_router(health.router, prefix="/health", tags=["Health"])
