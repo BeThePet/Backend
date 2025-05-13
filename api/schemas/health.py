@@ -17,7 +17,7 @@ class HealthCheckItem(str, Enum):
 class HealthDailyCreate(BaseModel):
     date: date
     item: HealthCheckItem
-    is_normal: bool
+    is_normal : bool
     memo: Optional[str] = None
 
 
@@ -25,7 +25,7 @@ class HealthDailyResponse(BaseModel):
     id: int
     date: date
     item: HealthCheckItem
-    is_normal: bool
+    is_normal : bool
     memo: Optional[str]
 
     class Config:

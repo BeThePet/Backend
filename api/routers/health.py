@@ -33,7 +33,7 @@ def get_dog_or_404(current_user: User, db: Session):
 
 
 # HealthDaily
-@router.post("/health", response_model=HealthDailyResponse)
+@router.post("/", response_model=HealthDailyResponse)
 def create_health_daily(
     payload: HealthDailyCreate,
     db: Session = Depends(get_db),
@@ -43,7 +43,7 @@ def create_health_daily(
     return HealthService.create_health_daily_record(dog.id, payload, db)
 
 
-@router.get("/health", response_model=List[HealthDailyResponse])
+@router.get("/", response_model=List[HealthDailyResponse])
 def list_health_daily(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -52,7 +52,7 @@ def list_health_daily(
     return HealthService.list_health_daily_records(dog.id, db)
 
 
-@router.get("/health/{record_id}", response_model=HealthDailyResponse)
+@router.get("/{record_id}", response_model=HealthDailyResponse)
 def get_health_daily(
     record_id: int,
     db: Session = Depends(get_db),
@@ -61,7 +61,7 @@ def get_health_daily(
     return HealthService.get_health_daily_record(record_id, current_user.id, db)
 
 
-@router.put("/health/{record_id}", response_model=HealthDailyResponse)
+@router.put("/{record_id}", response_model=HealthDailyResponse)
 def update_health_daily(
     record_id: int,
     payload: HealthDailyCreate,
@@ -73,7 +73,7 @@ def update_health_daily(
     )
 
 
-@router.delete("/health/{record_id}", status_code=204)
+@router.delete("/{record_id}", status_code=204)
 def delete_health_daily(
     record_id: int,
     db: Session = Depends(get_db),

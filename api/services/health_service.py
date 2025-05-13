@@ -32,7 +32,7 @@ class HealthService:
             .filter(
                 HealthCheck.dog_id == dog_id,
                 HealthCheck.date == data.date,
-                HealthCheck.item == data.item,
+                HealthCheck.category == data.item,
             )
             .first()
         )
@@ -42,7 +42,7 @@ class HealthService:
         record = HealthCheck(
             dog_id=dog_id,
             date=data.date,
-            item=data.item,
+            category=data.item,
             is_normal=data.is_normal,
             memo=data.memo,
         )
@@ -227,8 +227,8 @@ class HealthService:
         if not record:
             raise ValueError("기록을 찾을 수 없습니다.")
         record.date = data.date
-        record.item = data.item
-        record.is_normal = data.is_normal
+        record.category = data.item
+        record.status = "정상" if data.is_normal else "이상"
         record.memo = data.memo
         db.commit()
         db.refresh(record)

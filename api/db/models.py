@@ -1,5 +1,15 @@
 from core.base import TimeStampMixin
-from sqlalchemy import Column, Date, DateTime, Float, ForeignKey, Integer, String, func
+from sqlalchemy import (
+    Boolean,
+    Column,
+    Date,
+    DateTime,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    func,
+)
 from sqlalchemy.orm import relationship
 
 from .base import Base
@@ -22,14 +32,14 @@ class Dog(Base, TimeStampMixin):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(100), nullable=False)
     birth_date = Column(Date, nullable=False)
-    age_group = Column(String(20), nullable=False)  
+    age_group = Column(String(20), nullable=False)
     weight = Column(Float, nullable=False)
-    gender = Column(String(10), nullable=False)  
+    gender = Column(String(10), nullable=False)
     current_medication = Column(String(255), nullable=True)
 
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     breed_id = Column(Integer, ForeignKey("breeds.id"), nullable=False)
-    
+
     owner = relationship("User", back_populates="dogs")
     breed = relationship("Breed")
     allergies = relationship("DogAllergy", back_populates="dog")
@@ -137,8 +147,10 @@ class HealthCheck(Base):
     id = Column(Integer, primary_key=True)
     dog_id = Column(Integer, ForeignKey("dogs.id"), nullable=False)
     date = Column(Date, nullable=False, index=True)
-    category = Column(String(20), nullable=False)  # e.g., appetite, vitality, hydration, etc.
-    status = Column(String(10), nullable=False)  # "정상", "이상"
+    category = Column(
+        String(20), nullable=False
+    )  # e.g., appetite, vitality, hydration, etc.
+    is_normal = Column(Boolean, nullable=False)  # "정상", "이상"
     memo = Column(String(255), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
