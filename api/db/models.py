@@ -1,18 +1,9 @@
 from core.base import TimeStampMixin
-from sqlalchemy import (
-    Boolean,
-    Column,
-    Date,
-    DateTime,
-    Float,
-    ForeignKey,
-    Integer,
-    String,
-    func,
-)
-from sqlalchemy.orm import relationship
-from sqlalchemy import Enum as SQLAlchemyEnum
 from db.enums import HealthStatus
+from sqlalchemy import Boolean, Column, Date, DateTime
+from sqlalchemy import Enum as SQLAlchemyEnum
+from sqlalchemy import Float, ForeignKey, Integer, String, Time, func
+from sqlalchemy.orm import relationship
 
 from .base import Base
 
@@ -108,41 +99,39 @@ class DiseaseCategory(Base):
     diseases = relationship("Disease", back_populates="category")
 
 
-class DogAllergy(Base):
+class DogAllergy(Base, TimeStampMixin):
     __tablename__ = "dog_allergies"
 
     id = Column(Integer, primary_key=True)
     dog_id = Column(Integer, ForeignKey("dogs.id"), nullable=False)
     allergy_id = Column(Integer, ForeignKey("allergies.id"), nullable=False)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     dog = relationship("Dog", back_populates="allergies")
     allergy = relationship("Allergy")
 
 
-class DogDisease(Base):
+class DogDisease(Base, TimeStampMixin):
     __tablename__ = "dog_diseases"
 
     id = Column(Integer, primary_key=True)
     dog_id = Column(Integer, ForeignKey("dogs.id"), nullable=False)
     disease_id = Column(Integer, ForeignKey("diseases.id"), nullable=False)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     dog = relationship("Dog", back_populates="diseases")
     disease = relationship("Disease")
 
 
-class DogMbti(Base):
+class DogMbti(Base, TimeStampMixin):
     __tablename__ = "dog_mbtis"
 
     id = Column(Integer, primary_key=True)
     dog_id = Column(Integer, ForeignKey("dogs.id"), nullable=False, unique=True)
     mbti_type = Column(String(4), nullable=False)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     dog = relationship("Dog", back_populates="mbti")
 
-class HealthCheck(Base):
+
+class HealthCheck(Base, TimeStampMixin):
     __tablename__ = "health_checks"
 
     id = Column(Integer, primary_key=True)
@@ -151,13 +140,13 @@ class HealthCheck(Base):
     category = Column(
         String(20), nullable=False
     )  # e.g., appetite, vitality, hydration, etc.
-    status = Column(SQLAlchemyEnum(HealthStatus, name="healthstatus"), nullable=False) 
+    status = Column(SQLAlchemyEnum(HealthStatus, name="healthstatus"), nullable=False)
     memo = Column(String(255), nullable=True)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     dog = relationship("Dog", back_populates="health_checks")
 
-class WalkRecord(Base):
+
+class WalkRecord(Base, TimeStampMixin):
     __tablename__ = "walk_records"
 
     id = Column(Integer, primary_key=True)
@@ -165,12 +154,11 @@ class WalkRecord(Base):
     date = Column(Date, nullable=False, index=True)
     distance_km = Column(Float, nullable=False)
     duration_min = Column(Integer, nullable=False)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     dog = relationship("Dog", back_populates="walk_records")
 
 
-class FoodRecord(Base):
+class FoodRecord(Base, TimeStampMixin):
     __tablename__ = "food_records"
 
     id = Column(Integer, primary_key=True)
@@ -179,30 +167,44 @@ class FoodRecord(Base):
     time = Column(String(10), nullable=False)  # HH:MM 형식 문자열 저장
     brand = Column(String(100), nullable=True)
     amount_g = Column(Integer, nullable=False)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     dog = relationship("Dog", back_populates="food_records")
 
 
-class WaterIntake(Base):
+class WaterIntake(Base, TimeStampMixin):
     __tablename__ = "water_intakes"
 
     id = Column(Integer, primary_key=True)
     dog_id = Column(Integer, ForeignKey("dogs.id"), nullable=False)
     date = Column(Date, nullable=False, index=True)
     amount_ml = Column(Integer, nullable=False)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     dog = relationship("Dog", back_populates="water_intakes")
 
 
-class WeightRecord(Base):
+class WeightRecord(Base, TimeStampMixin):
     __tablename__ = "weight_records"
 
     id = Column(Integer, primary_key=True)
     dog_id = Column(Integer, ForeignKey("dogs.id"), nullable=False)
     date = Column(Date, nullable=False, index=True)
     weight_kg = Column(Float, nullable=False)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     dog = relationship("Dog", back_populates="weight_records")
+
+
+class Medication(Base, TimeStampMixin):
+    __tablename__ = "medications"
+
+    id = Column(Integer, primary_key=True)
+    dog_id = Column(Integer, ForeignKey("dogs.id"), nullable=False)
+    name = Column(String(100), nullable=False)  # 약 이름
+    time = Column(Time, nullable=False)  # 복용 시간
+    weekdays = Column(String(20), nullable=False) 
+    dosage = Column(String(50), nullable=False)  
+    start_date = Column(Date, nullable=False)
+    end_date = Column(Date, nullable=True)
+    memo = Column(String(255), nullable=True)
+    alarm_enabled = Column(Boolean, default=False)
+
+    dog = relationship("Dog", back_populates="medications")

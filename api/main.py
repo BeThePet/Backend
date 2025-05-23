@@ -2,7 +2,7 @@ from db.base import Base
 from fastapi import FastAPI
 
 from api.db.session import engine
-from api.routers import dog, health, mbti, option, user
+from api.routers import dog, health, mbti, medic, option, user
 
 app = FastAPI()
 
@@ -18,3 +18,4 @@ app.include_router(dog.router, prefix="/dog", tags=["Dog"])
 app.include_router(option.router, prefix="/option", tags=["Option"])
 app.include_router(mbti.router, prefix="/mbti", tags=["Mbti"])
 app.include_router(health.router, prefix="/health", tags=["Health"])
+app.include_router(medic.router, prefix="/medications", tags=["Medications"])
