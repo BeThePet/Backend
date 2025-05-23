@@ -1,13 +1,7 @@
 from datetime import date, datetime, timedelta
 from zoneinfo import ZoneInfo
 
-from db.models import (
-    FoodRecord,
-    HealthCheck,
-    WalkRecord,
-    WaterIntake,
-    WeightRecord,
-)
+from db.models import FoodRecord, HealthCheck, WalkRecord, WaterIntake, WeightRecord
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
@@ -27,11 +21,12 @@ class HealthService:
 
     @staticmethod
     def create_health_daily_record(dog_id: int, data: HealthDailyCreate, db: Session):
+        today = datetime.now(tz=KST).date()
         existing = (
             db.query(HealthCheck)
             .filter(
                 HealthCheck.dog_id == dog_id,
-                HealthCheck.date == data.date,
+                func.date(HealthCheck.created_at) == today,
                 HealthCheck.category == data.item,
             )
             .first()
@@ -41,7 +36,6 @@ class HealthService:
 
         record = HealthCheck(
             dog_id=dog_id,
-            date=data.date,
             category=data.item,
             status=data.status,
             memo=data.memo,
@@ -53,9 +47,12 @@ class HealthService:
 
     @staticmethod
     def create_walk_record(dog_id: int, data: WalkRecordCreate, db: Session):
+        today = datetime.now(tz=KST).date()
         existing = (
             db.query(WalkRecord)
-            .filter(WalkRecord.dog_id == dog_id, WalkRecord.date == data.date)
+            .filter(
+                WalkRecord.dog_id == dog_id, func.date(WalkRecord.created_at) == today
+            )
             .first()
         )
         if existing:
@@ -63,7 +60,6 @@ class HealthService:
 
         record = WalkRecord(
             dog_id=dog_id,
-            date=data.date,
             distance_km=data.distance_km,
             duration_min=data.duration_minutes,
         )
@@ -74,11 +70,12 @@ class HealthService:
 
     @staticmethod
     def create_food_record(dog_id: int, data: FoodRecordCreate, db: Session):
+        today = datetime.now(tz=KST).date()
         existing = (
             db.query(FoodRecord)
             .filter(
                 FoodRecord.dog_id == dog_id,
-                FoodRecord.date == data.date,
+                func.date(FoodRecord.created_at) == today,
                 FoodRecord.time == data.time,
             )
             .first()
@@ -88,7 +85,6 @@ class HealthService:
 
         record = FoodRecord(
             dog_id=dog_id,
-            date=data.date,
             time=data.time,
             brand=data.brand,
             amount_g=data.amount_g,
@@ -100,9 +96,12 @@ class HealthService:
 
     @staticmethod
     def create_water_record(dog_id: int, data: WaterRecordCreate, db: Session):
+        today = datetime.now(tz=KST).date()
         existing = (
             db.query(WaterIntake)
-            .filter(WaterIntake.dog_id == dog_id, WaterIntake.date == data.date)
+            .filter(
+                WaterIntake.dog_id == dog_id, func.date(WaterIntake.created_at) == today
+            )
             .first()
         )
         if existing:
@@ -110,7 +109,6 @@ class HealthService:
 
         record = WaterIntake(
             dog_id=dog_id,
-            date=data.date,
             amount_ml=data.amount_ml,
         )
         db.add(record)
@@ -120,9 +118,13 @@ class HealthService:
 
     @staticmethod
     def create_weight_record(dog_id: int, data: WeightRecordCreate, db: Session):
+        today = datetime.now(tz=KST).date()
         existing = (
             db.query(WeightRecord)
-            .filter(WeightRecord.dog_id == dog_id, WeightRecord.date == data.date)
+            .filter(
+                WeightRecord.dog_id == dog_id,
+                func.date(WeightRecord.created_at) == today,
+            )
             .first()
         )
         if existing:
@@ -138,95 +140,18 @@ class HealthService:
         db.refresh(record)
         return record
 
-    @staticmethod
-    def get_weekly_report(dog_id: int, db: Session):
-        today = datetime.now(tz=KST).date()
-        week_start = today - timedelta(days=today.weekday() + 1)  # 가장 최근 일요일
-        week_end = week_start + timedelta(days=6)
-
-        weight = (
-            db.query(WeightRecord.weight_kg)
-            .filter(WeightRecord.dog_id == dog_id, WeightRecord.date <= week_end)
-            .order_by(WeightRecord.date.desc())
-            .first()
-        )
-
-        walk_records = (
-            db.query(WalkRecord)
-            .filter(
-                WalkRecord.dog_id == dog_id,
-                WalkRecord.date.between(week_start, week_end),
-            )
-            .all()
-        )
-        walk_count = len(walk_records)
-        avg_walk_duration = (
-            sum(r.duration_min for r in walk_records) / walk_count
-            if walk_count
-            else 0
-        )
-
-        health_check_count = (
-            db.query(HealthCheck)
-            .filter(
-                HealthCheck.dog_id == dog_id,
-                HealthCheck.date.between(week_start, week_end),
-            )
-            .count()
-        )
-
-        total_water = (
-            db.query(func.sum(WaterIntake.amount_ml))
-            .filter(
-                WaterIntake.dog_id == dog_id,
-                WaterIntake.date.between(week_start, week_end),
-            )
-            .scalar()
-            or 0
-        )
-
-        total_food = (
-            db.query(func.sum(FoodRecord.amount_g))
-            .filter(
-                FoodRecord.dog_id == dog_id,
-                FoodRecord.date.between(week_start, week_end),
-            )
-            .scalar()
-            or 0
-        )
-
-        return WeeklyReportResponse(
-            week_start=week_start,
-            week_end=week_end,
-            current_weight=weight[0] if weight else None,
-            avg_walk_duration=avg_walk_duration,
-            walk_count=walk_count,
-            health_check_count=health_check_count,
-            total_water_ml=total_water,
-            total_food_g=total_food,
-        )
-
     # HealthDailyRecord CRUD
     @staticmethod
     def get_health_daily_record_by_id(record_id: int, db: Session):
-        return (
-            db.query(HealthCheck)
-            .filter(HealthCheck.id == record_id)
-            .first()
-        )
+        return db.query(HealthCheck).filter(HealthCheck.id == record_id).first()
 
     @staticmethod
     def update_health_daily_record(
         record_id: int, data: HealthDailyCreate, db: Session
     ):
-        record = (
-            db.query(HealthCheck)
-            .filter(HealthCheck.id == record_id)
-            .first()
-        )
+        record = db.query(HealthCheck).filter(HealthCheck.id == record_id).first()
         if not record:
             raise ValueError("기록을 찾을 수 없습니다.")
-        record.date = data.date
         record.category = data.item
         record.status = data.status
         record.memo = data.memo
@@ -236,11 +161,7 @@ class HealthService:
 
     @staticmethod
     def delete_health_daily_record(record_id: int, db: Session):
-        record = (
-            db.query(HealthCheck)
-            .filter(HealthCheck.id == record_id)
-            .first()
-        )
+        record = db.query(HealthCheck).filter(HealthCheck.id == record_id).first()
         if not record:
             raise ValueError("기록을 찾을 수 없습니다.")
         db.delete(record)
@@ -256,7 +177,6 @@ class HealthService:
         record = db.query(WalkRecord).filter(WalkRecord.id == record_id).first()
         if not record:
             raise ValueError("기록을 찾을 수 없습니다.")
-        record.date = data.date
         record.distance_km = data.distance_km
         record.duration_min = data.duration_minutes
         db.commit()
@@ -281,7 +201,6 @@ class HealthService:
         record = db.query(FoodRecord).filter(FoodRecord.id == record_id).first()
         if not record:
             raise ValueError("기록을 찾을 수 없습니다.")
-        record.date = data.date
         record.time = data.time
         record.brand = data.brand
         record.amount_g = data.amount_g
@@ -307,7 +226,6 @@ class HealthService:
         record = db.query(WaterIntake).filter(WaterIntake.id == record_id).first()
         if not record:
             raise ValueError("기록을 찾을 수 없습니다.")
-        record.date = data.date
         record.amount_ml = data.amount_ml
         db.commit()
         db.refresh(record)
@@ -331,7 +249,6 @@ class HealthService:
         record = db.query(WeightRecord).filter(WeightRecord.id == record_id).first()
         if not record:
             raise ValueError("기록을 찾을 수 없습니다.")
-        record.date = data.date
         record.weight_kg = data.weight_kg
         db.commit()
         db.refresh(record)
@@ -344,3 +261,73 @@ class HealthService:
             raise ValueError("기록을 찾을 수 없습니다.")
         db.delete(record)
         db.commit()
+
+    # Weekly_report_GET
+    @staticmethod
+    def get_weekly_report(dog_id: int, db: Session):
+        today = datetime.now(tz=KST).date()
+        week_start = today - timedelta(days=today.weekday() + 1)  # 가장 최근 일요일
+        week_end = week_start + timedelta(days=6)
+
+        weight = (
+            db.query(WeightRecord.weight_kg)
+            .filter(
+                WeightRecord.dog_id == dog_id,
+                func.date(WeightRecord.created_at) <= week_end,
+            )
+            .order_by(WeightRecord.created_at.desc())
+            .first()
+        )
+
+        walk_records = (
+            db.query(WalkRecord)
+            .filter(
+                WalkRecord.dog_id == dog_id,
+                func.date(WalkRecord.created_at).between(week_start, week_end),
+            )
+            .all()
+        )
+        walk_count = len(walk_records)
+        avg_walk_duration = (
+            sum(r.duration_min for r in walk_records) / walk_count if walk_count else 0
+        )
+
+        health_check_count = (
+            db.query(HealthCheck)
+            .filter(
+                HealthCheck.dog_id == dog_id,
+                func.date(HealthCheck.created_at).between(week_start, week_end),
+            )
+            .count()
+        )
+
+        total_water = (
+            db.query(func.sum(WaterIntake.amount_ml))
+            .filter(
+                WaterIntake.dog_id == dog_id,
+                func.date(WaterIntake.created_at).between(week_start, week_end),
+            )
+            .scalar()
+            or 0
+        )
+
+        total_food = (
+            db.query(func.sum(FoodRecord.amount_g))
+            .filter(
+                FoodRecord.dog_id == dog_id,
+                func.date(FoodRecord.created_at).between(week_start, week_end),
+            )
+            .scalar()
+            or 0
+        )
+
+        return WeeklyReportResponse(
+            week_start=week_start,
+            week_end=week_end,
+            current_weight=weight[0] if weight else None,
+            avg_walk_duration=avg_walk_duration,
+            walk_count=walk_count,
+            health_check_count=health_check_count,
+            total_water_ml=total_water,
+            total_food_g=total_food,
+        )
