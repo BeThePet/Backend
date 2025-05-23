@@ -11,6 +11,8 @@ from sqlalchemy import (
     func,
 )
 from sqlalchemy.orm import relationship
+from sqlalchemy import Enum as SQLAlchemyEnum
+from db.enums import HealthStatus
 
 from .base import Base
 
@@ -140,7 +142,6 @@ class DogMbti(Base):
 
     dog = relationship("Dog", back_populates="mbti")
 
-
 class HealthCheck(Base):
     __tablename__ = "health_checks"
 
@@ -150,12 +151,11 @@ class HealthCheck(Base):
     category = Column(
         String(20), nullable=False
     )  # e.g., appetite, vitality, hydration, etc.
-    is_normal = Column(Boolean, nullable=False)  # "정상", "이상"
+    status = Column(SQLAlchemyEnum(HealthStatus, name="healthstatus"), nullable=False) 
     memo = Column(String(255), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     dog = relationship("Dog", back_populates="health_checks")
-
 
 class WalkRecord(Base):
     __tablename__ = "walk_records"

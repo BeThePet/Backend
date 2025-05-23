@@ -1,6 +1,7 @@
 from datetime import date
 from enum import Enum
 from typing import List, Optional
+from db.enums import HealthStatus
 
 from pydantic import BaseModel
 
@@ -8,7 +9,6 @@ from pydantic import BaseModel
 class HealthCheckItem(str, Enum):
     appetite = "식욕"
     vitality = "활력"
-    hydration = "수분섭취"
     defecation = "배변상태"
     sleep = "수면"
     temperature = "체온"
@@ -17,7 +17,7 @@ class HealthCheckItem(str, Enum):
 class HealthDailyCreate(BaseModel):
     date: date
     item: HealthCheckItem
-    is_normal : bool
+    status: HealthStatus
     memo: Optional[str] = None
 
 
@@ -25,7 +25,7 @@ class HealthDailyResponse(BaseModel):
     id: int
     date: date
     item: HealthCheckItem
-    is_normal : bool
+    status: HealthStatus
     memo: Optional[str]
 
     class Config:

@@ -43,7 +43,7 @@ class HealthService:
             dog_id=dog_id,
             date=data.date,
             category=data.item,
-            is_normal=data.is_normal,
+            status=data.status,
             memo=data.memo,
         )
         db.add(record)
@@ -228,7 +228,7 @@ class HealthService:
             raise ValueError("기록을 찾을 수 없습니다.")
         record.date = data.date
         record.category = data.item
-        record.status = "정상" if data.is_normal else "이상"
+        record.status = data.status
         record.memo = data.memo
         db.commit()
         db.refresh(record)
