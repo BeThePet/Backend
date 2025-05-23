@@ -136,7 +136,6 @@ class HealthCheck(Base, TimeStampMixin):
 
     id = Column(Integer, primary_key=True)
     dog_id = Column(Integer, ForeignKey("dogs.id"), nullable=False)
-    date = Column(Date, nullable=False, index=True)
     category = Column(
         String(20), nullable=False
     )  # e.g., appetite, vitality, hydration, etc.
@@ -151,7 +150,6 @@ class WalkRecord(Base, TimeStampMixin):
 
     id = Column(Integer, primary_key=True)
     dog_id = Column(Integer, ForeignKey("dogs.id"), nullable=False)
-    date = Column(Date, nullable=False, index=True)
     distance_km = Column(Float, nullable=False)
     duration_min = Column(Integer, nullable=False)
 
@@ -163,8 +161,7 @@ class FoodRecord(Base, TimeStampMixin):
 
     id = Column(Integer, primary_key=True)
     dog_id = Column(Integer, ForeignKey("dogs.id"), nullable=False)
-    date = Column(Date, nullable=False, index=True)
-    time = Column(String(10), nullable=False)  # HH:MM 형식 문자열 저장
+    time = Column(Time, nullable=False)
     brand = Column(String(100), nullable=True)
     amount_g = Column(Integer, nullable=False)
 
@@ -176,7 +173,6 @@ class WaterIntake(Base, TimeStampMixin):
 
     id = Column(Integer, primary_key=True)
     dog_id = Column(Integer, ForeignKey("dogs.id"), nullable=False)
-    date = Column(Date, nullable=False, index=True)
     amount_ml = Column(Integer, nullable=False)
 
     dog = relationship("Dog", back_populates="water_intakes")
@@ -187,7 +183,6 @@ class WeightRecord(Base, TimeStampMixin):
 
     id = Column(Integer, primary_key=True)
     dog_id = Column(Integer, ForeignKey("dogs.id"), nullable=False)
-    date = Column(Date, nullable=False, index=True)
     weight_kg = Column(Float, nullable=False)
 
     dog = relationship("Dog", back_populates="weight_records")
@@ -200,8 +195,8 @@ class Medication(Base, TimeStampMixin):
     dog_id = Column(Integer, ForeignKey("dogs.id"), nullable=False)
     name = Column(String(100), nullable=False)  # 약 이름
     time = Column(Time, nullable=False)  # 복용 시간
-    weekdays = Column(String(20), nullable=False) 
-    dosage = Column(String(50), nullable=False)  
+    weekdays = Column(String(20), nullable=False)
+    dosage = Column(String(50), nullable=False)
     start_date = Column(Date, nullable=False)
     end_date = Column(Date, nullable=True)
     memo = Column(String(255), nullable=True)

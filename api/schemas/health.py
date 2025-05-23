@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, time
 from enum import Enum
 from typing import List, Optional
 from db.enums import HealthStatus
@@ -15,7 +15,6 @@ class HealthCheckItem(str, Enum):
 
 
 class HealthDailyCreate(BaseModel):
-    date: date
     item: HealthCheckItem
     status: HealthStatus
     memo: Optional[str] = None
@@ -23,7 +22,6 @@ class HealthDailyCreate(BaseModel):
 
 class HealthDailyResponse(BaseModel):
     id: int
-    date: date
     item: HealthCheckItem
     status: HealthStatus
     memo: Optional[str]
@@ -33,14 +31,12 @@ class HealthDailyResponse(BaseModel):
 
 
 class WalkRecordCreate(BaseModel):
-    date: date
     distance_km: float
     duration_min: int
 
 
 class WalkRecordResponse(BaseModel):
     id: int
-    date: date
     distance_km: float
     duration_min: int
 
@@ -49,7 +45,6 @@ class WalkRecordResponse(BaseModel):
 
 
 class FoodRecordCreate(BaseModel):
-    date: date
     time: str
     brand: Optional[str]
     amount_g: int
@@ -57,8 +52,7 @@ class FoodRecordCreate(BaseModel):
 
 class FoodRecordResponse(BaseModel):
     id: int
-    date: date
-    time: str
+    time: time
     brand: Optional[str]
     amount_g: int
 
@@ -67,13 +61,11 @@ class FoodRecordResponse(BaseModel):
 
 
 class WaterRecordCreate(BaseModel):
-    date: date
     amount_ml: int
 
 
 class WaterRecordResponse(BaseModel):
     id: int
-    date: date
     amount_ml: int
 
     class Config:
@@ -81,13 +73,11 @@ class WaterRecordResponse(BaseModel):
 
 
 class WeightRecordCreate(BaseModel):
-    date: date
     weight_kg: float
 
 
 class WeightRecordResponse(BaseModel):
     id: int
-    date: date
     weight_kg: float
 
     class Config:
