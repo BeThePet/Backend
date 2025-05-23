@@ -203,3 +203,34 @@ class Medication(Base, TimeStampMixin):
     alarm_enabled = Column(Boolean, default=False)
 
     dog = relationship("Dog", back_populates="medications")
+
+
+class VaccineCategory(str):
+    REQUIRED = "필수"
+    OPTIONAL = "선택"
+
+
+class VaccineType(Base):
+    __tablename__ = "vaccine_types"
+
+    id = Column(String, primary_key=True)
+    name = Column(String(100), nullable=False)
+    category = Column(String(10), nullable=False)
+    description = Column(String(255), nullable=True)
+    period = Column(Integer, nullable=False)  # 예방주기(일 단위)
+
+    vaccinations = relationship("VaccinationRecord", back_populates="vaccine")
+
+
+class VaccinationRecord(Base, TimeStampMixin):
+    __tablename__ = "vaccination_records"
+
+    id = Column(Integer, primary_key=True)
+    dog_id = Column(Integer, ForeignKey("dogs.id"), nullable=False)
+    vaccine_id = Column(String, ForeignKey("vaccine_types.id"), nullable=False)
+    date = Column(Date, nullable=False)
+    hospital = Column(String(100), nullable=True)
+    memo = Column(String(255), nullable=True)
+
+    vaccine = relationship("VaccineType", back_populates="vaccinations")
+    dog = relationship("Dog", back_populates="vaccinations")
