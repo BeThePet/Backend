@@ -7,7 +7,7 @@ from api.routers import dog, health, mbti, medic, option, user, vaccine, emergen
 app = FastAPI()
 
 
-# DB 테이블 자동 생성
+#DB 테이블 자동 생성
 @app.on_event("startup")
 def on_startup():
     Base.metadata.create_all(bind=engine)
