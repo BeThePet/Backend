@@ -41,3 +41,12 @@ class HospitalResponse(HospitalBase):
 
     class Config:
         from_attributes = True
+
+
+class EmergencyHospitalSummary(BaseModel):
+    id: int
+    name: str
+    phone: str
+
+    class Config:
+        orm_mode = True

@@ -50,6 +50,14 @@ class EmergencyService:
         db.commit()
 
     @staticmethod
+    def get_emergency_hospital_summaries(db: Session) -> List[Hospital]:
+        return (
+            db.query(Hospital.id, Hospital.name, Hospital.phone)
+            .filter(Hospital.is_emergency == True)
+            .all()
+        )
+
+    @staticmethod
     def get_all_emergency_guides(db: Session) -> List[EmergencyGuide]:
         return db.query(EmergencyGuide).all()
 
@@ -59,3 +67,4 @@ class EmergencyService:
         if not guide:
             raise ValueError("해당 가이드를 찾을 수 없습니다.")
         return guide
+    
