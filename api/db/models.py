@@ -1,8 +1,8 @@
 from core.base import TimeStampMixin
 from db.enums import HealthStatus, HospitalType, Specialty
-from sqlalchemy import Boolean, Column, Date, DateTime
+from sqlalchemy import ARRAY, Boolean, Column, Date, DateTime
 from sqlalchemy import Enum as SQLAlchemyEnum
-from sqlalchemy import Float, ForeignKey, Integer, String, Time, func, ARRAY
+from sqlalchemy import Float, ForeignKey, Integer, String, Time, func
 from sqlalchemy.orm import relationship
 
 from .base import Base
@@ -43,6 +43,8 @@ class Dog(Base, TimeStampMixin):
     food_records = relationship("FoodRecord", back_populates="dog")
     water_intakes = relationship("WaterIntake", back_populates="dog")
     weight_records = relationship("WeightRecord", back_populates="dog")
+    medications = relationship("Medication", back_populates="dog")
+    vaccinations = relationship("VaccinationRecord", back_populates="dog")
 
 
 class Breed(Base):
@@ -236,8 +238,6 @@ class VaccinationRecord(Base, TimeStampMixin):
     dog = relationship("Dog", back_populates="vaccinations")
 
 
-
-
 class Hospital(Base, TimeStampMixin):
     __tablename__ = "hospitals"
 
@@ -251,6 +251,7 @@ class Hospital(Base, TimeStampMixin):
     notes = Column(String(255), nullable=True)
     specialties = Column(ARRAY(SQLAlchemyEnum(Specialty, name="specialty_enum")))
 
+
 class EmergencyGuide(Base, TimeStampMixin):
     __tablename__ = "emergency_guides"
 
@@ -260,5 +261,3 @@ class EmergencyGuide(Base, TimeStampMixin):
     symptoms = Column(ARRAY(String), nullable=False)
     first_aid = Column(ARRAY(String), nullable=False)
     notes = Column(String(1000), nullable=True)
-
-
