@@ -43,8 +43,8 @@ class Settings(BaseSettings):
     ALLOWED_HOSTS: List[str] = ["localhost", "127.0.0.1", "api.yoon.today"]
 
     # 환경 설정
-    DEBUG: bool = False
-    ENVIRONMENT: str = "production"
+    DEBUG: bool = True  
+    ENVIRONMENT: str = "development"  # 개발 환경에서는 development
 
     class Config:
         case_sensitive = True
