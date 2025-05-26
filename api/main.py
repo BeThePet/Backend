@@ -1,10 +1,44 @@
 from db.base import Base
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 
+from api.core.config import settings
 from api.db.session import engine
-from api.routers import dog, health, mbti, medic, option, user, vaccine, emergency
+from api.routers import dog, emergency, health, mbti, medic, option, user, vaccine
 
-app = FastAPI()
+app = FastAPI(
+    title=settings.PROJECT_NAME,
+    version=settings.VERSION,
+    description=settings.DESCRIPTION,
+    docs_url="/docs" if settings.DEBUG else None,  # 프로덕션에서는 스웨거 비활성화
+    redoc_url="/redoc" if settings.DEBUG else None,
+)
+
+# CORS 설정
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.ALLOWED_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# 신뢰할 수 있는 호스트 설정
+app.add_middleware(
+    TrustedHostMiddleware,
+    allowed_hosts=settings.ALLOWED_HOSTS,
+)
+
+
+# 보안 헤더 미들웨어
+@app.middleware("http")
+async def add_security_headers(request, call_next):
+    response = await call_next(request)
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    return response
 
 
 # DB 테이블 자동 생성

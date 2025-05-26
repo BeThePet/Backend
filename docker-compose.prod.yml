@@ -16,8 +16,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    ports:
-      - "8000:8000"
+    expose:  
+      - "8000"
     volumes:
       - .:/app
     env_file:
@@ -27,4 +27,4 @@ services:
 
 networks:
   app_network:
-    driver: bridge
+    driver: bridge 

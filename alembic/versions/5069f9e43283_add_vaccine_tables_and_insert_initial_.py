@@ -22,36 +22,6 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     """Upgrade schema."""
-    op.create_table(
-        "vaccine_types",
-        sa.Column("id", sa.String, primary_key=True),
-        sa.Column("name", sa.String(100), nullable=False),
-        sa.Column("category", sa.String(10), nullable=False),
-        sa.Column("description", sa.String(255), nullable=True),
-        sa.Column("period", sa.Integer, nullable=False),
-    )
-
-    op.create_table(
-        "vaccination_records",
-        sa.Column("id", sa.Integer, primary_key=True),
-        sa.Column("dog_id", sa.Integer, sa.ForeignKey("dogs.id"), nullable=False),
-        sa.Column(
-            "vaccine_id", sa.String, sa.ForeignKey("vaccine_types.id"), nullable=False
-        ),
-        sa.Column("date", sa.Date, nullable=False),
-        sa.Column("hospital", sa.String(100), nullable=True),
-        sa.Column("memo", sa.String(255), nullable=True),
-        sa.Column(
-            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now()
-        ),
-        sa.Column(
-            "updated_at",
-            sa.DateTime(timezone=True),
-            server_default=sa.func.now(),
-            onupdate=sa.func.now(),
-        ),
-        sa.Column("deleted_at", sa.DateTime(timezone=True), nullable=True),
-    )
 
     # 초기 데이터 삽입
     vaccine_types_table = table(
