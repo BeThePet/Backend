@@ -5,7 +5,6 @@ from dotenv import load_dotenv
 from pydantic import AnyHttpUrl
 from pydantic_settings import BaseSettings
 
-
 load_dotenv()
 
 
@@ -36,12 +35,12 @@ class Settings(BaseSettings):
     # CORS 설정
     ALLOWED_ORIGINS: List[str] = [
         "http://localhost:3000",  # React 개발 서버
-        "https://bowwowcare.yoon.today",  # 프로덕션 프론트엔드
-        "https://api.bowwowcare.yoon.today",  # 프로덕션 백엔드
+        "https://yoon.today",  # 프로덕션 프론트엔드
+        "https://api.yoon.today",  # 프로덕션 백엔드
     ]
 
     # 호스트 설정
-    ALLOWED_HOSTS: List[str] = ["localhost", "127.0.0.1", "api.bowwowcare.yoon.today"]
+    ALLOWED_HOSTS: List[str] = ["localhost", "127.0.0.1", "api.yoon.today"]
 
     # 환경 설정
     DEBUG: bool = False
