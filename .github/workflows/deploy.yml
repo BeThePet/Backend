@@ -26,27 +26,30 @@ jobs:
     - name: Build, tag, and push image to Amazon ECR
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: bethepet-api
+        ECR_REPOSITORY: bowwow/backend
         IMAGE_TAG: ${{ github.sha }}
       run: |
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
-    # - name: Deploy to EC2
-    #   uses: appleboy/ssh-action@master
-    #   with:
-    #     host: ${{ secrets.EC2_HOST }}
-    #     username: ${{ secrets.EC2_USERNAME }}
-    #     key: ${{ secrets.EC2_SSH_KEY }}
-    #     script: |
-    #       # Pull the latest images
-    #       docker-compose pull
+    - name: Deploy to EC2
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ${{ secrets.EC2_USERNAME }}
+        key: ${{ secrets.EC2_SSH_KEY }}
+        script: |
+          cd ~/app
           
-    #       # Stop and remove existing containers
-    #       docker-compose down
+          # Pull latest code changes
+          git pull origin main
           
-    #       # Start new containers
-    #       docker-compose up -d
+          # Update image tag in docker-compose file
+          sed -i "s|build:|image: ${{ steps.login-ecr.outputs.registry }}/bowwow/backend:${{ github.sha }}|g" docker-compose.prod.yml
           
-    #       # Clean up unused images
-    #       docker image prune -f
+          # Restart services
+          docker-compose -f docker-compose.prod.yml down
+          docker-compose -f docker-compose.prod.yml up -d
+          
+          # Clean up old images
+          docker image prune -f
