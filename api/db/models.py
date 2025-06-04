@@ -1,8 +1,12 @@
+import uuid
+from datetime import datetime
+
 from core.base import TimeStampMixin
 from db.enums import HealthStatus, HospitalType, Specialty
 from sqlalchemy import ARRAY, Boolean, Column, Date, DateTime
 from sqlalchemy import Enum as SQLAlchemyEnum
-from sqlalchemy import Float, ForeignKey, Integer, String, Time, func
+from sqlalchemy import Float, ForeignKey, Integer, String, Text, Time, func
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
 from .base import Base
@@ -261,3 +265,65 @@ class EmergencyGuide(Base, TimeStampMixin):
     symptoms = Column(ARRAY(String), nullable=False)
     first_aid = Column(ARRAY(String), nullable=False)
     notes = Column(String(1000), nullable=True)
+
+
+# 챗봇 관련 모델 추가
+class ChatRoom(Base, TimeStampMixin):
+    __tablename__ = "chat_rooms"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), nullable=False)
+    title = Column(String(255))
+    
+
+    # Relationships
+    messages = relationship(
+        "ChatMessage", back_populates="chat_room", cascade="all, delete-orphan"
+    )
+    symptom_logs = relationship(
+        "SymptomLog", back_populates="chat_room", cascade="all, delete-orphan"
+    )
+
+
+class ChatMessage(Base, TimeStampMixin):
+    __tablename__ = "chat_messages"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    chat_room_id = Column(
+        UUID(as_uuid=True), ForeignKey("chat_rooms.id"), nullable=False
+    )
+    role = Column(String(50), nullable=False)  # 'user' or 'assistant'
+    content = Column(Text, nullable=False)
+
+
+    # Relationships
+    chat_room = relationship("ChatRoom", back_populates="messages")
+
+
+class NewSymptom(Base, TimeStampMixin):
+    __tablename__ = "new_symptoms"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    symptom_name = Column(String(255), nullable=False, unique=True)
+    normalized_name = Column(String(255))
+    category = Column(String(100))
+    severity = Column(Integer)
+    description = Column(Text)
+    related_symptoms = Column(ARRAY(String))
+    possible_causes = Column(ARRAY(String))
+    
+
+
+class SymptomLog(Base, TimeStampMixin):
+    __tablename__ = "symptom_logs"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    chat_room_id = Column(
+        UUID(as_uuid=True), ForeignKey("chat_rooms.id"), nullable=False
+    )
+    symptom_name = Column(String(255), nullable=False)
+    context = Column(Text)
+
+
+    # Relationships
+    chat_room = relationship("ChatRoom", back_populates="symptom_logs")

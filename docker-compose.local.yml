@@ -24,6 +24,9 @@ services:
       - .env.chatbot
     volumes:
       - ./chatbot/src:/app/src
+      - ./api:/app/api
+    depends_on:
+      - bethepet_api
 
   nginx:
     image: nginx:1.25-alpine

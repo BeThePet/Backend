@@ -20,6 +20,6 @@ RUN mkdir -p /app/src/data/static \
 COPY src/data/static/ src/data/static/
 
 # Python 모듈 경로 설정
-ENV PYTHONPATH=/app
+ENV PYTHONPATH=/app:/app/api
 
 CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8001"]

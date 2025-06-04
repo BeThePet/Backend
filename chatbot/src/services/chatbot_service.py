@@ -2,21 +2,24 @@ import json
 import os
 import re
 from datetime import datetime
+from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple, Union
 
 from dotenv import load_dotenv
 from openai import OpenAI
-from pathlib import Path
-from symptom_matcher import match_diseases, normalize_symptoms
+
+from .symptom_matcher import match_diseases, normalize_symptoms
+
 
 def check_required_env_vars():
     required_vars = ["OPENAI_API_KEY", "DB_HOST", "DB_USER", "DB_PASSWORD"]
     missing_vars = [var for var in required_vars if not os.getenv(var)]
-    
+
     if missing_vars:
         raise EnvironmentError(
             f"Missing required environment variables: {', '.join(missing_vars)}"
         )
+
 
 # 시작시 환경변수 체크
 check_required_env_vars()
@@ -27,8 +30,8 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 # 결과 캐싱을 위한 딕셔너리
 symptom_cache = {}
 
-#파일 경로 설정
-BASE_DIR = Path(__file__).parent
+# 파일 경로 설정
+BASE_DIR = Path(__file__).parent.parent  # services의 상위 디렉토리인 src로 변경
 DATA_DIR = BASE_DIR / "data"
 STATIC_DATA_DIR = DATA_DIR / "static"
 DYNAMIC_DATA_DIR = DATA_DIR / "dynamic"
