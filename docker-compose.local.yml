@@ -1,0 +1,41 @@
+services:
+  bethepet_api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    networks:
+      - app_network
+
+  chatbot:
+    build:
+      context: ./chatbot
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8001"
+    networks:
+      - app_network
+    env_file:
+      - .env.chatbot
+    volumes:
+      - ./chatbot/src:/app/src
+
+  nginx:
+    image: nginx:1.25-alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/conf.d/default.local.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - bethepet_api
+    networks:
+      - app_network
+
+networks:
+  app_network:
+    driver: bridge

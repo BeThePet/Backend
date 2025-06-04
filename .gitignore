@@ -142,6 +142,9 @@ celerybeat.pid
 *.sage.py
 
 # Environments
+.env*
+!.env.example
+.env.chatbot
 .env
 .env.dev
 .env.prod

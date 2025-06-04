@@ -11,8 +11,8 @@ app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION,
     description=settings.DESCRIPTION,
-    docs_url="/docs" if settings.DEBUG else None,  # 프로덕션에서는 스웨거 비활성화
-    redoc_url="/redoc" if settings.DEBUG else None,
+    docs_url="/docs",
+    redoc_url="/redoc",
 )
 
 # CORS 설정
