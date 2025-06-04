@@ -1,12 +1,11 @@
 from logging.config import fileConfig
 
 from dotenv import load_dotenv
-from sqlalchemy import MetaData, engine_from_config, pool
+from sqlalchemy import engine_from_config, pool
 
 from alembic import context
-from api.db.models import Base as APIBase
+from api.db.models import Base
 from api.db.session import DATABASE_URL
-from chatbot.src.models.chat import Base as ChatbotBase
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -19,18 +18,8 @@ config.set_main_option("sqlalchemy.url", DATABASE_URL)
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-
-# Combine metadata from both bases
-def combine_metadata(*args):
-    combined_metadata = MetaData()
-    for metadata in args:
-        for table in metadata.tables.values():
-            table.tometadata(combined_metadata)
-    return combined_metadata
-
-
 # target_metadata 설정
-target_metadata = combine_metadata(APIBase.metadata, ChatbotBase.metadata)
+target_metadata = Base.metadata
 
 
 def run_migrations_offline() -> None:
