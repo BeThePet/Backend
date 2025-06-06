@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
@@ -6,7 +7,12 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from api.db.models import Base  # API 모델에서 Base import
 
-load_dotenv()
+# 프로젝트 루트 디렉토리의 .env.chatbot 파일 로드
+root_dir = (
+    Path(__file__).resolve().parents[2]
+)  # chatbot/src/database.py에서 2단계 상위로 이동
+env_path = root_dir / ".env.chatbot"
+load_dotenv(env_path)
 
 DB_HOST = os.getenv("DB_HOST")
 DB_PORT = os.getenv("DB_PORT", 5432)

@@ -1,13 +1,14 @@
 import uuid
 from datetime import datetime
 
-from core.base import TimeStampMixin
 from db.enums import HealthStatus, HospitalType, Specialty
 from sqlalchemy import ARRAY, Boolean, Column, Date, DateTime
 from sqlalchemy import Enum as SQLAlchemyEnum
 from sqlalchemy import Float, ForeignKey, Integer, String, Text, Time, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
+
+from core.base import TimeStampMixin
 
 from .base import Base
 
@@ -272,9 +273,8 @@ class ChatRoom(Base, TimeStampMixin):
     __tablename__ = "chat_rooms"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     title = Column(String(255))
-    
 
     # Relationships
     messages = relationship(
@@ -283,6 +283,7 @@ class ChatRoom(Base, TimeStampMixin):
     symptom_logs = relationship(
         "SymptomLog", back_populates="chat_room", cascade="all, delete-orphan"
     )
+    user = relationship("User", backref="chat_rooms")
 
 
 class ChatMessage(Base, TimeStampMixin):
@@ -292,12 +293,13 @@ class ChatMessage(Base, TimeStampMixin):
     chat_room_id = Column(
         UUID(as_uuid=True), ForeignKey("chat_rooms.id"), nullable=False
     )
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     role = Column(String(50), nullable=False)  # 'user' or 'assistant'
     content = Column(Text, nullable=False)
 
-
     # Relationships
     chat_room = relationship("ChatRoom", back_populates="messages")
+    user = relationship("User", backref="chat_messages")
 
 
 class NewSymptom(Base, TimeStampMixin):
@@ -311,7 +313,6 @@ class NewSymptom(Base, TimeStampMixin):
     description = Column(Text)
     related_symptoms = Column(ARRAY(String))
     possible_causes = Column(ARRAY(String))
-    
 
 
 class SymptomLog(Base, TimeStampMixin):
@@ -321,9 +322,10 @@ class SymptomLog(Base, TimeStampMixin):
     chat_room_id = Column(
         UUID(as_uuid=True), ForeignKey("chat_rooms.id"), nullable=False
     )
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     symptom_name = Column(String(255), nullable=False)
     context = Column(Text)
 
-
     # Relationships
     chat_room = relationship("ChatRoom", back_populates="symptom_logs")
+    user = relationship("User", backref="symptom_logs")

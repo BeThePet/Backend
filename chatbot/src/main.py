@@ -16,24 +16,21 @@ app = FastAPI(
 )
 
 # CORS 설정
-origins = [
-    "http://localhost",
-    "http://localhost:3000",  # React 프론트엔드
-    "http://localhost:8000",  # API 서비스
-    "https://yoon.today",  # 프로덕션 프론트엔드
-    "https://api.yoon.today",  # 프로덕션 백엔드
-]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],  # 실제 운영 환경에서는 구체적인 origin으로 변경
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# WebSocket 라우터 추가
-app.include_router(websocket_router, prefix="/chat", tags=["chat"])
+# 웹소켓 라우터 등록
+app.include_router(websocket_router)
+
+
+@app.get("/")
+async def root():
+    return {"message": "Welcome to BethePet Chatbot Service"}
 
 
 @app.get("/health")

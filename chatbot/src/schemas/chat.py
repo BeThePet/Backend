@@ -5,41 +5,51 @@ from uuid import UUID
 from pydantic import BaseModel
 
 
-class ChatMessageBase(BaseModel):
-    role: str
-    content: str
-
-
-class ChatMessageCreate(ChatMessageBase):
-    pass
-
-
-class ChatMessage(ChatMessageBase):
-    id: UUID
-    chat_room_id: UUID
-    created_at: datetime
-
-    class Config:
-        from_attributes = True
-
-
-class ChatRoomBase(BaseModel):
-    title: Optional[str] = None
-
-
-class ChatRoomCreate(ChatRoomBase):
-    user_id: UUID
-
-
-class ChatRoom(ChatRoomBase):
-    id: UUID
-    user_id: UUID
+class TimeStampSchema(BaseModel):
     created_at: datetime
     updated_at: datetime
-    messages: List[ChatMessage] = []
+    deleted_at: Optional[datetime] = None
+
+
+class ChatMessage(TimeStampSchema):
+    id: UUID
+    chat_room_id: UUID
+    user_id: int
+    content: str
+    role: str  # "user" or "assistant"
 
     class Config:
         from_attributes = True
+
+
+class ChatRoom(TimeStampSchema):
+    id: UUID
+    user_id: int
+    title: str
+
+    class Config:
+        from_attributes = True
+
+
+class ChatRoomCreate(BaseModel):
+    user_id: int
+    title: str
+
+
+class ChatRoomResponse(TimeStampSchema):
+    id: UUID
+    title: str
+    last_message: Optional[str] = None
+
+
+class ChatMessageCreate(BaseModel):
+    content: str
+    user_id: int
+
+
+class ChatHistoryResponse(BaseModel):
+    messages: List[ChatMessage]
+    dog_info: Optional[dict] = None  # 반려견 정보
 
 
 class NewSymptomBase(BaseModel):
@@ -56,10 +66,8 @@ class NewSymptomCreate(NewSymptomBase):
     pass
 
 
-class NewSymptom(NewSymptomBase):
+class NewSymptom(NewSymptomBase, TimeStampSchema):
     id: UUID
-    created_at: datetime
-    updated_at: datetime
 
     class Config:
         from_attributes = True
@@ -72,12 +80,13 @@ class SymptomLogBase(BaseModel):
 
 class SymptomLogCreate(SymptomLogBase):
     chat_room_id: UUID
+    user_id: int
 
 
-class SymptomLog(SymptomLogBase):
+class SymptomLog(SymptomLogBase, TimeStampSchema):
     id: UUID
     chat_room_id: UUID
-    created_at: datetime
+    user_id: int
 
     class Config:
         from_attributes = True

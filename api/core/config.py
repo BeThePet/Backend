@@ -13,7 +13,6 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "BethePet API"
     VERSION: str = "1.0.0"
     DESCRIPTION: str = "반려견 헬스케어 플랫폼 API"
-    API_V1_STR: str = "/api/v1"
 
     # 데이터베이스 설정
     DB_HOST: str
@@ -43,7 +42,7 @@ class Settings(BaseSettings):
     ALLOWED_HOSTS: List[str] = ["localhost", "127.0.0.1", "api.yoon.today"]
 
     # 환경 설정
-    DEBUG: bool = True  
+    DEBUG: bool = True
     ENVIRONMENT: str = "development"  # 개발 환경에서는 development
 
     class Config:
