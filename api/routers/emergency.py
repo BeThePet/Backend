@@ -17,14 +17,37 @@ from api.schemas.emergency import (
 router = APIRouter()
 
 
-@router.get("/hospitals", response_model=List[HospitalResponse])
-def get_hospitals(
-    type: Optional[HospitalType] = Query(None),
-    db: Session = Depends(get_db),
-):
-    return EmergencyService.get_all_hospitals(db, type_filter=type)
+# 병원 조회 (경로 파라미터 방식)
+@router.get("/hospitals/all", response_model=List[HospitalResponse])
+def get_all_hospitals(db: Session = Depends(get_db)):
+    """전체 병원 목록 조회"""
+    return EmergencyService.get_all_hospitals(db)
 
 
+@router.get("/hospitals/regular", response_model=List[HospitalResponse])
+def get_regular_hospitals(db: Session = Depends(get_db)):
+    """일반 병원 목록 조회"""
+    return EmergencyService.get_hospitals_by_type(db, HospitalType.REGULAR)
+
+
+@router.get("/hospitals/emergency", response_model=List[HospitalResponse])
+def get_emergency_hospitals(db: Session = Depends(get_db)):
+    """응급 병원 목록 조회"""
+    return EmergencyService.get_hospitals_by_type(db, HospitalType.EMERGENCY)
+
+
+@router.get("/hospitals/specialist", response_model=List[HospitalResponse])
+def get_specialist_hospitals(db: Session = Depends(get_db)):
+    """전문 병원 목록 조회"""
+    return EmergencyService.get_hospitals_by_type(db, HospitalType.SPECIALIST)
+
+
+@router.get("/hospitals/summary", response_model=List[EmergencyHospitalSummary])
+def get_emergency_hospital_summary(db: Session = Depends(get_db)):
+    return EmergencyService.get_emergency_hospital_summaries(db)
+
+
+# 병원 CRUD
 @router.post("/hospitals", response_model=HospitalResponse)
 def create_hospital(data: HospitalCreate, db: Session = Depends(get_db)):
     return EmergencyService.create_hospital(data, db)
@@ -49,11 +72,7 @@ def delete_hospital(hospital_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail=str(e))
 
 
-@router.get("/hospitals/summary", response_model=List[EmergencyHospitalSummary])
-def get_emergency_hospital_summary(db: Session = Depends(get_db)):
-    return EmergencyService.get_emergency_hospital_summaries(db)
-
-
+# 응급 가이드
 @router.get("/guides", response_model=List[EmergencyGuideResponse])
 def get_all_guides(db: Session = Depends(get_db)):
     return EmergencyService.get_all_emergency_guides(db)

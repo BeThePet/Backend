@@ -4,7 +4,7 @@ from typing import List
 from core.security import get_current_user
 from db.models import Dog, User
 from db.session import get_db
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from api.schemas.health import (
@@ -89,11 +89,14 @@ def create_walk(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    dog = get_dog_or_404(current_user, db)
-    return HealthService.create_walk_record(dog.id, payload, db)
+    try:
+        dog = get_dog_or_404(current_user, db)
+        return HealthService.create_walk_record(dog.id, payload, db)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
-@router.get("/walks", response_model=List[WalkRecordResponse])
+@router.get("/walks/list", response_model=List[WalkRecordResponse])
 def list_walks(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -137,11 +140,14 @@ def create_food(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    dog = get_dog_or_404(current_user, db)
-    return HealthService.create_food_record(dog.id, payload, db)
+    try:
+        dog = get_dog_or_404(current_user, db)
+        return HealthService.create_food_record(dog.id, payload, db)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
-@router.get("/foods", response_model=List[FoodRecordResponse])
+@router.get("/foods/list", response_model=List[FoodRecordResponse])
 def list_foods(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -185,11 +191,14 @@ def create_water(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    dog = get_dog_or_404(current_user, db)
-    return HealthService.create_water_record(dog.id, payload, db)
+    try:
+        dog = get_dog_or_404(current_user, db)
+        return HealthService.create_water_record(dog.id, payload, db)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
-@router.get("/waters", response_model=List[WaterRecordResponse])
+@router.get("/waters/list", response_model=List[WaterRecordResponse])
 def list_waters(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -233,11 +242,14 @@ def create_weight(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    dog = get_dog_or_404(current_user, db)
-    return HealthService.create_weight_record(dog.id, payload, db)
+    try:
+        dog = get_dog_or_404(current_user, db)
+        return HealthService.create_weight_record(dog.id, payload, db)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
-@router.get("/weights", response_model=List[WeightRecordResponse])
+@router.get("/weights/list", response_model=List[WeightRecordResponse])
 def list_weights(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -275,7 +287,7 @@ def delete_weight(
 
 
 # Weekly_report
-@router.get("/weekly-report", response_model=WeeklyReportResponse)
+@router.get("/report/weekly/list", response_model=WeeklyReportResponse)
 def get_weekly_report(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),

@@ -2,21 +2,43 @@ import json
 import os
 import re
 from datetime import datetime
+from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple, Union
+from uuid import UUID
 
 from dotenv import load_dotenv
 from openai import OpenAI
-from pathlib import Path
-from symptom_matcher import match_diseases, normalize_symptoms
+from sqlalchemy.orm import Session, joinedload
+
+from api.db.models import (
+    AllergyCategory,
+    ChatMessage,
+    ChatRoom,
+    DiseaseCategory,
+    Dog,
+    NewSymptom,
+    SymptomLog,
+)
+
+from ..schemas.chat import (
+    ChatHistoryResponse,
+    ChatMessageCreate,
+    ChatRoomCreate,
+    ChatRoomResponse,
+    SymptomLogCreate,
+)
+from .symptom_matcher import match_diseases, normalize_symptoms
+
 
 def check_required_env_vars():
     required_vars = ["OPENAI_API_KEY", "DB_HOST", "DB_USER", "DB_PASSWORD"]
     missing_vars = [var for var in required_vars if not os.getenv(var)]
-    
+
     if missing_vars:
         raise EnvironmentError(
             f"Missing required environment variables: {', '.join(missing_vars)}"
         )
+
 
 # 시작시 환경변수 체크
 check_required_env_vars()
@@ -27,8 +49,8 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 # 결과 캐싱을 위한 딕셔너리
 symptom_cache = {}
 
-#파일 경로 설정
-BASE_DIR = Path(__file__).parent
+# 파일 경로 설정
+BASE_DIR = Path(__file__).parent.parent  # services의 상위 디렉토리인 src로 변경
 DATA_DIR = BASE_DIR / "data"
 STATIC_DATA_DIR = DATA_DIR / "static"
 DYNAMIC_DATA_DIR = DATA_DIR / "dynamic"
@@ -39,6 +61,13 @@ LOG_DIR.mkdir(parents=True, exist_ok=True)
 NEW_SYMPTOMS_FILE = DYNAMIC_DATA_DIR / "new_symptoms.json"
 SYMPTOMS_LOG_FILE = LOG_DIR / "symptoms_log.json"
 DISEASE_DESCRIPTIONS_FILE = STATIC_DATA_DIR / "disease_descriptions.json"
+
+# Static 파일 로드
+current_dir = Path(__file__).parent.parent
+with open(current_dir / "static" / "disease_map.json", "r", encoding="utf-8") as f:
+    DISEASE_MAP = json.load(f)
+with open(current_dir / "static" / "allergy_map.json", "r", encoding="utf-8") as f:
+    ALLERGY_MAP = json.load(f)
 
 
 # 질병 설명 DB 로드
@@ -500,6 +529,422 @@ def clear_cache():
     global symptom_cache
     symptom_cache = {}
     print("🗑️ 캐시가 초기화되었습니다.")
+
+
+class ChatbotService:
+    def __init__(self, db: Session):
+        self.db = db
+        # 대화 상태 관리를 위한 딕셔너리
+        # {chat_room_id: {"state": "waiting_for_additional", "symptoms": {"known": [...], "new": [...]}}}
+        self.chat_states = {}
+
+    def get_dog_info(self, user_id: int) -> Optional[dict]:
+        """사용자의 반려견 정보 조회"""
+        dog = (
+            self.db.query(Dog)
+            .options(
+                joinedload(Dog.breed),
+                joinedload(Dog.diseases),
+                joinedload(Dog.allergies),
+            )
+            .filter(Dog.user_id == user_id, Dog.deleted_at.is_(None))
+            .first()
+        )
+        if not dog:
+            return None
+
+        # 질병 이름 추출 - static map 사용
+        disease_names = []
+        if dog.diseases:
+            for dd in dog.diseases:
+                disease_id = str(dd.disease_id)
+                if disease_id in DISEASE_MAP:
+                    disease_names.append(DISEASE_MAP[disease_id])
+
+        # 알러지 이름 추출 - static map 사용
+        allergy_names = []
+        if dog.allergies:
+            for da in dog.allergies:
+                allergy_id = str(da.allergy_id)
+                if allergy_id in ALLERGY_MAP:
+                    allergy_names.append(ALLERGY_MAP[allergy_id])
+
+        return {
+            "name": dog.name,
+            "breed": dog.breed.name if dog.breed else None,
+            "age": dog.age_group,
+            "weight": dog.weight,
+            "gender": dog.gender,
+            "diseases": disease_names,
+            "allergies": allergy_names,
+        }
+
+    def create_chat_room(self, chat_room_data: ChatRoomCreate) -> ChatRoom:
+        """새로운 대화방 생성"""
+        chat_room = ChatRoom(user_id=chat_room_data.user_id, title=chat_room_data.title)
+        self.db.add(chat_room)
+        self.db.commit()
+        self.db.refresh(chat_room)
+        return chat_room
+
+    def get_chat_rooms(self, user_id: int) -> List[ChatRoom]:
+        """사용자의 대화방 목록 조회"""
+        return (
+            self.db.query(ChatRoom)
+            .filter(ChatRoom.user_id == user_id, ChatRoom.deleted_at.is_(None))
+            .order_by(ChatRoom.updated_at.desc())
+            .all()
+        )
+
+    def get_chat_history(self, chat_room_id: UUID) -> List[ChatMessage]:
+        """대화방의 대화 내역 조회"""
+        chat_room = (
+            self.db.query(ChatRoom)
+            .filter(ChatRoom.id == chat_room_id, ChatRoom.deleted_at.is_(None))
+            .first()
+        )
+        if not chat_room:
+            return []
+
+        return (
+            self.db.query(ChatMessage)
+            .filter(
+                ChatMessage.chat_room_id == chat_room_id,
+                ChatMessage.deleted_at.is_(None),
+            )
+            .order_by(ChatMessage.created_at)
+            .all()
+        )
+
+    def delete_chat_room(self, chat_room_id: UUID):
+        """대화방 삭제 (soft delete)"""
+        chat_room = (
+            self.db.query(ChatRoom)
+            .filter(ChatRoom.id == chat_room_id, ChatRoom.deleted_at.is_(None))
+            .first()
+        )
+        if chat_room:
+            chat_room.deleted_at = datetime.utcnow()
+            # 관련된 메시지와 증상 로그도 함께 soft delete
+            self.db.query(ChatMessage).filter(
+                ChatMessage.chat_room_id == chat_room_id,
+                ChatMessage.deleted_at.is_(None),
+            ).update({"deleted_at": datetime.utcnow()})
+            self.db.query(SymptomLog).filter(
+                SymptomLog.chat_room_id == chat_room_id, SymptomLog.deleted_at.is_(None)
+            ).update({"deleted_at": datetime.utcnow()})
+            self.db.commit()
+
+    async def process_message(
+        self, chat_room_id: UUID, message_data: ChatMessageCreate
+    ) -> ChatMessage:
+        """사용자 메시지 처리 및 챗봇 응답 생성"""
+        # 채팅방 존재 여부 확인
+        chat_room = (
+            self.db.query(ChatRoom)
+            .filter(ChatRoom.id == chat_room_id, ChatRoom.deleted_at.is_(None))
+            .first()
+        )
+        if not chat_room:
+            raise ValueError("Chat room not found or deleted")
+
+        # 사용자 메시지 저장
+        user_message = ChatMessage(
+            chat_room_id=chat_room_id,
+            user_id=message_data.user_id,
+            role="user",
+            content=message_data.content,
+        )
+        self.db.add(user_message)
+
+        # 반려견 정보 조회
+        dog_info = self.get_dog_info(message_data.user_id)
+
+        # 이전 대화 내역 조회
+        chat_history = self.get_chat_history(chat_room_id)
+
+        # 현재 대화 상태 확인
+        current_state = self.chat_states.get(str(chat_room_id), {"state": "initial"})
+
+        if current_state["state"] == "initial":
+            # 첫 메시지 처리
+            known_symptoms, new_symptoms = self._extract_symptoms_with_gpt(
+                message_data.content
+            )
+
+            # 대화 상태 업데이트
+            self.chat_states[str(chat_room_id)] = {
+                "state": "waiting_for_additional",
+                "symptoms": {"known": known_symptoms, "new": new_symptoms},
+            }
+
+            # 추가 증상 문의 메시지 생성
+            response_content = self._generate_additional_symptoms_prompt(
+                known_symptoms, new_symptoms
+            )
+        elif current_state["state"] == "waiting_for_additional":
+            # 추가 증상 처리
+            additional_known, additional_new = self._extract_symptoms_with_gpt(
+                message_data.content
+            )
+
+            # 기존 증상과 추가 증상 합치기
+            all_known = list(set(current_state["symptoms"]["known"] + additional_known))
+            all_new = list(set(current_state["symptoms"]["new"] + additional_new))
+
+            # 대화 상태 초기화
+            self.chat_states[str(chat_room_id)] = {"state": "initial"}
+
+            # 최종 응답 생성
+            response_content = self._generate_response(
+                message_data.content, all_known, all_new, dog_info, chat_history
+            )
+
+        # 챗봇 응답 저장
+        assistant_message = ChatMessage(
+            chat_room_id=chat_room_id,
+            user_id=message_data.user_id,
+            role="assistant",
+            content=response_content,
+        )
+        self.db.add(assistant_message)
+        self.db.commit()
+        self.db.refresh(assistant_message)
+
+        return assistant_message
+
+    def _generate_additional_symptoms_prompt(
+        self, known_symptoms: List[str], new_symptoms: List[str]
+    ) -> str:
+        """추가 증상 문의 메시지 생성"""
+        response = "🔍 **파악된 증상**\n"
+
+        if known_symptoms:
+            response += f"\n일반적인 증상:\n- {', '.join(known_symptoms)}"
+        if new_symptoms:
+            response += f"\n\n특이 증상/행동:\n- {', '.join(new_symptoms)}"
+
+        response += "\n\n💬 **추가 증상이나 상태가 있나요?**\n"
+        response += "- 예: 열이 있어요, 기침을 해요, 설사를 해요 등\n"
+        response += "- 특이한 행동이나 상태 변화도 알려주세요!\n"
+        response += "- 없으시다면 '없음'이라고 답변해주세요."
+
+        return response
+
+    def _extract_symptoms_with_gpt(
+        self, user_input: str
+    ) -> Tuple[List[str], List[str]]:
+        """GPT를 사용하여 증상 추출"""
+        prompt = f"""
+너는 수의학 전문가야. 보호자의 말에서 반려동물의 모든 증상을 추출해줘.
+
+보호자 말: "{user_input}"
+
+다음 형식으로 JSON 응답을 생성해줘:
+{{
+    "known_symptoms": ["기존 증상1", "기존 증상2"],  # 일반적으로 알려진 증상
+    "new_symptoms": ["새로운 증상1", "새로운 증상2"]  # 특이하거나 새로운 증상/행동
+}}
+"""
+        try:
+            response = client.chat.completions.create(
+                model="gpt-4",
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.1,
+                max_tokens=200,
+            )
+
+            result = json.loads(response.choices[0].message.content)
+            return normalize_symptoms(result.get("known_symptoms", [])), result.get(
+                "new_symptoms", []
+            )
+        except Exception as e:
+            print(f"GPT 증상 추출 오류: {e}")
+            return [], []
+
+    def _generate_response(
+        self,
+        user_input: str,
+        known_symptoms: List[str],
+        new_symptoms: List[str],
+        dog_info: Optional[dict],
+        chat_history: List[ChatMessage],
+    ) -> str:
+        """챗봇 응답 생성"""
+        # Rule 기반 질병 매칭 시도
+        rule_results = match_diseases(known_symptoms) if known_symptoms else None
+
+        if rule_results and rule_results[0][1] >= 0.3:  # 신뢰도 30% 이상
+            return self._format_rule_based_response(rule_results, dog_info)
+
+        # GPT를 통한 응답 생성
+        return self._generate_gpt_response(
+            user_input, known_symptoms, new_symptoms, dog_info, chat_history
+        )
+
+    def _format_rule_based_response(
+        self, results: List[tuple], dog_info: Optional[dict]
+    ) -> str:
+        """Rule 기반 결과 포맷팅"""
+        response = "🔍 **증상 분석 결과**\n\n"
+
+        if dog_info:
+            response += f"반려견 정보:\n"
+            response += f"- 이름: {dog_info.get('name', '정보 없음')}\n"
+            response += f"- 품종: {dog_info.get('breed', '정보 없음')}\n"
+            response += f"- 나이: {dog_info.get('age', '정보 없음')}세\n"
+            response += f"- 체중: {dog_info.get('weight', '정보 없음')}kg\n"
+            response += f"- 성별: {dog_info.get('gender', '정보 없음')}\n"
+            if dog_info.get("diseases"):
+                response += f"- 기존 질병: {', '.join(dog_info['diseases'])}\n"
+            if dog_info.get("allergies"):
+                response += f"- 알러지: {', '.join(dog_info['allergies'])}\n"
+            response += "\n"
+
+        for i, (disease, confidence) in enumerate(results, 1):
+            response += f"**{i}. {disease}** (신뢰도: {confidence*100:.1f}%)\n"
+            response += f"{DISEASE_DESCRIPTIONS.get(disease, '상세 정보가 필요한 경우 수의사와 상담하세요.')}\n\n"
+
+        response += "💡 **권장사항**\n"
+        response += "- 증상이 지속되거나 악화되면 즉시 수의사와 상담하세요\n"
+        response += "- 추가 증상이 있다면 알려주세요\n"
+
+        return response
+
+    def _generate_gpt_response(
+        self,
+        user_input: str,
+        known_symptoms: List[str],
+        new_symptoms: List[str],
+        dog_info: Optional[dict],
+        chat_history: List[ChatMessage],
+    ) -> str:
+        """GPT를 통한 응답 생성"""
+        # 대화 히스토리 포맷팅
+        formatted_history = "\n".join(
+            [
+                f"{'보호자' if msg.role == 'user' else '수의사'}: {msg.content}"
+                for msg in chat_history[-5:]  # 최근 5개 메시지만
+            ]
+        )
+
+        # 반려견 정보 포맷팅
+        dog_info_str = ""
+        if dog_info:
+            dog_info_str = f"""
+반려견 정보:
+- 이름: {dog_info.get('name', '정보 없음')}
+- 품종: {dog_info.get('breed', '정보 없음')}
+- 나이: {dog_info.get('age', '정보 없음')}세
+- 체중: {dog_info.get('weight', '정보 없음')}kg
+- 성별: {dog_info.get('gender', '정보 없음')}
+- 기존 질병: {', '.join(dog_info.get('diseases', []) or ['없음'])}
+- 알러지: {', '.join(dog_info.get('allergies', []) or ['없음'])}
+"""
+
+        prompt = f"""
+너는 수의학 전문가야. 다음 정보를 바탕으로 답변해줘:
+
+{dog_info_str}
+
+최근 대화 내역:
+{formatted_history}
+
+현재 질문: {user_input}
+
+파악된 증상:
+- 일반 증상: {', '.join(known_symptoms) if known_symptoms else '없음'}
+- 특이 증상: {', '.join(new_symptoms) if new_symptoms else '없음'}
+
+다음 형식으로 답변해줘:
+
+**의심 질병 (1-3개)**
+1. [질병명]: [간단한 설명]
+2. [질병명]: [간단한 설명]
+
+**추가 관찰사항**
+- [관찰할 점 1]
+- [관찰할 점 2]
+
+**권장사항**
+- 수의사 상담 필요 여부와 응급도
+- 가정에서 할 수 있는 응급처치 (구체적으로)
+"""
+
+        try:
+            response = client.chat.completions.create(
+                model="gpt-4",
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.3,
+                max_tokens=700,
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            return f"죄송합니다. 현재 AI 분석에 문제가 있습니다. 수의사와 직접 상담받으시길 권장합니다. (오류: {e})"
+
+    def update_room_title(self, chat_room_id: UUID, title: str):
+        """대화방 제목 업데이트"""
+        chat_room = self.db.query(ChatRoom).filter(ChatRoom.id == chat_room_id).first()
+        if chat_room:
+            chat_room.title = title
+            self.db.commit()
+
+    def get_chat_rooms_with_last_message(self, user_id: int) -> List[ChatRoomResponse]:
+        """사용자의 대화방 목록을 마지막 메시지와 함께 조회"""
+        chat_rooms = (
+            self.db.query(ChatRoom)
+            .filter(ChatRoom.user_id == user_id, ChatRoom.deleted_at.is_(None))
+            .order_by(ChatRoom.updated_at.desc())
+            .all()
+        )
+
+        result = []
+        for room in chat_rooms:
+            # 마지막 메시지 조회
+            last_message = (
+                self.db.query(ChatMessage)
+                .filter(
+                    ChatMessage.chat_room_id == room.id,
+                    ChatMessage.deleted_at.is_(None),
+                )
+                .order_by(ChatMessage.created_at.desc())
+                .first()
+            )
+
+            result.append(
+                ChatRoomResponse(
+                    id=room.id,
+                    title=room.title,
+                    created_at=room.created_at,
+                    updated_at=room.updated_at,
+                    deleted_at=room.deleted_at,
+                    last_message=last_message.content if last_message else None,
+                )
+            )
+
+        return result
+
+    def get_chat_history_with_dog_info(
+        self, chat_room_id: UUID, user_id: int
+    ) -> ChatHistoryResponse:
+        """대화 내역과 반려견 정보를 함께 조회"""
+        messages = self.get_chat_history(chat_room_id)
+        dog_info = self.get_dog_info(user_id)
+
+        return ChatHistoryResponse(messages=messages, dog_info=dog_info)
+
+    def create_symptom_log(self, symptom_data: SymptomLogCreate) -> SymptomLog:
+        """증상 로그 생성"""
+        symptom_log = SymptomLog(
+            chat_room_id=symptom_data.chat_room_id,
+            user_id=symptom_data.user_id,
+            symptom_name=symptom_data.symptom_name,
+            context=symptom_data.context,
+        )
+        self.db.add(symptom_log)
+        self.db.commit()
+        self.db.refresh(symptom_log)
+        return symptom_log
 
 
 if __name__ == "__main__":

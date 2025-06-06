@@ -1,26 +1,36 @@
 from typing import List, Optional
-from sqlalchemy.orm import Session
+
+from db.enums import HospitalType
+from db.models import EmergencyGuide, Hospital
 from sqlalchemy import select
 from sqlalchemy.exc import NoResultFound
+from sqlalchemy.orm import Session
 
-from db.models import Hospital, EmergencyGuide
 from api.schemas.emergency import (
-    HospitalCreate,
-    HospitalUpdate,
-    HospitalResponse,
     EmergencyGuideResponse,
+    HospitalCreate,
+    HospitalResponse,
+    HospitalUpdate,
 )
-from db.enums import HospitalType
 
 
 class EmergencyService:
 
     @staticmethod
-    def get_all_hospitals(db: Session, type_filter: Optional[HospitalType] = None) -> List[Hospital]:
+    def get_all_hospitals(
+        db: Session, type_filter: Optional[HospitalType] = None
+    ) -> List[Hospital]:
         query = db.query(Hospital)
         if type_filter:
             query = query.filter(Hospital.type == type_filter)
         return query.all()
+
+    @staticmethod
+    def get_hospitals_by_type(
+        db: Session, hospital_type: HospitalType
+    ) -> List[Hospital]:
+        """특정 타입의 병원 목록 조회"""
+        return db.query(Hospital).filter(Hospital.type == hospital_type).all()
 
     @staticmethod
     def create_hospital(data: HospitalCreate, db: Session) -> Hospital:
@@ -31,7 +41,9 @@ class EmergencyService:
         return hospital
 
     @staticmethod
-    def update_hospital(hospital_id: int, data: HospitalUpdate, db: Session) -> Hospital:
+    def update_hospital(
+        hospital_id: int, data: HospitalUpdate, db: Session
+    ) -> Hospital:
         hospital = db.query(Hospital).filter(Hospital.id == hospital_id).first()
         if not hospital:
             raise ValueError("해당 병원을 찾을 수 없습니다.")
@@ -67,4 +79,3 @@ class EmergencyService:
         if not guide:
             raise ValueError("해당 가이드를 찾을 수 없습니다.")
         return guide
-    

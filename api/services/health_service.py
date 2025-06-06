@@ -56,12 +56,17 @@ class HealthService:
             .first()
         )
         if existing:
-            raise ValueError("이미 해당 날짜의 산책 기록이 존재합니다.")
+            # 기존 기록이 있으면 업데이트
+            existing.distance_km = data.distance_km
+            existing.duration_min = data.duration_min
+            db.commit()
+            db.refresh(existing)
+            return existing
 
         record = WalkRecord(
             dog_id=dog_id,
             distance_km=data.distance_km,
-            duration_min=data.duration_minutes,
+            duration_min=data.duration_min,
         )
         db.add(record)
         db.commit()
@@ -74,14 +79,18 @@ class HealthService:
         existing = (
             db.query(FoodRecord)
             .filter(
-                FoodRecord.dog_id == dog_id,
-                func.date(FoodRecord.created_at) == today,
-                FoodRecord.time == data.time,
+                FoodRecord.dog_id == dog_id, func.date(FoodRecord.created_at) == today
             )
             .first()
         )
         if existing:
-            raise ValueError("이미 해당 시간의 사료 기록이 존재합니다.")
+            # 기존 기록이 있으면 업데이트
+            existing.time = data.time
+            existing.brand = data.brand
+            existing.amount_g = data.amount_g
+            db.commit()
+            db.refresh(existing)
+            return existing
 
         record = FoodRecord(
             dog_id=dog_id,
@@ -105,7 +114,10 @@ class HealthService:
             .first()
         )
         if existing:
-            raise ValueError("이미 해당 날짜의 물 섭취 기록이 존재합니다.")
+            existing.amount_ml = data.amount_ml
+            db.commit()
+            db.refresh(existing)
+            return existing
 
         record = WaterIntake(
             dog_id=dog_id,
@@ -178,7 +190,7 @@ class HealthService:
         if not record:
             raise ValueError("기록을 찾을 수 없습니다.")
         record.distance_km = data.distance_km
-        record.duration_min = data.duration_minutes
+        record.duration_min = data.duration_min
         db.commit()
         db.refresh(record)
         return record
@@ -291,6 +303,9 @@ class HealthService:
         avg_walk_duration = (
             sum(r.duration_min for r in walk_records) / walk_count if walk_count else 0
         )
+        avg_walk_distance = (
+            sum(r.distance_km for r in walk_records) / walk_count if walk_count else 0
+        )
 
         health_check_count = (
             db.query(HealthCheck)
@@ -326,8 +341,25 @@ class HealthService:
             week_end=week_end,
             current_weight=weight[0] if weight else None,
             avg_walk_duration=avg_walk_duration,
+            avg_walk_distance=avg_walk_distance,
             walk_count=walk_count,
             health_check_count=health_check_count,
             total_water_ml=total_water,
             total_food_g=total_food,
         )
+
+    @staticmethod
+    def list_water_records(dog_id: int, db: Session):
+        return db.query(WaterIntake).filter(WaterIntake.dog_id == dog_id).all()
+
+    @staticmethod
+    def list_food_records(dog_id: int, db: Session):
+        return db.query(FoodRecord).filter(FoodRecord.dog_id == dog_id).all()
+
+    @staticmethod
+    def list_walk_records(dog_id: int, db: Session):
+        return db.query(WalkRecord).filter(WalkRecord.dog_id == dog_id).all()
+
+    @staticmethod
+    def list_weight_records(dog_id: int, db: Session):
+        return db.query(WeightRecord).filter(WeightRecord.dog_id == dog_id).all()

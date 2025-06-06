@@ -18,3 +18,4 @@ pydantic = {extras = ["email"], version = "^2.11.4"}
 alembic = "^1.15.2"
 pydantic-settings = "^2.0"
 
+

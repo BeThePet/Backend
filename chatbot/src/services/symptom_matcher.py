@@ -1,9 +1,9 @@
 import json
-from typing import List, Tuple
 from pathlib import Path
+from typing import List, Tuple
 
 # Load JSON 데이터
-BASE_DIR = Path(__file__).parent
+BASE_DIR = Path(__file__).parent.parent  # services의 상위 디렉토리인 src로 변경
 DATA_DIR = BASE_DIR / "data"
 STATIC_DATA_DIR = DATA_DIR / "static"
 
