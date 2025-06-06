@@ -7,7 +7,7 @@ import websockets
 
 async def test_chatbot():
     # 테스트용 쿠키 (실제 로그인해서 얻은 access_token으로 교체 필요)
-    cookie = "access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0QGV4YW1wbGUuY29tIiwiZXhwIjoxNzQ5MjQwNjY5fQ.n9W9Ren4tvlAwlQjETBddEZ7ZQN3GmmafMJGe7NWOaQ; Path=/; HttpOnly; SameSite=lax"
+
 
     # 웹소켓 연결 설정
     websocket_url = "ws://localhost/ws"
