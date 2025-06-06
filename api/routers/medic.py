@@ -46,3 +46,17 @@ def delete_medication(
 ):
     dog = get_dog_or_404(current_user, db)
     MedicationService.delete_medication(medication_id, dog.id, db)
+
+
+@router.put("/{medication_id}", response_model=MedicationResponse)
+def update_medication(
+    medication_id: int,
+    payload: MedicationCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    try:
+        dog = get_dog_or_404(current_user, db)
+        return MedicationService.update_medication(medication_id, dog.id, payload, db)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))

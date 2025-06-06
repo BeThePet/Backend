@@ -1,8 +1,8 @@
 from datetime import date, time
 from enum import Enum
 from typing import List, Optional
-from db.enums import HealthStatus
 
+from db.enums import HealthStatus
 from pydantic import BaseModel
 
 
@@ -89,6 +89,7 @@ class WeeklyReportResponse(BaseModel):
     week_end: date
     current_weight: Optional[float]
     avg_walk_duration: Optional[float]
+    avg_walk_distance: Optional[float]
     walk_count: int
     health_check_count: int
     total_water_ml: int
