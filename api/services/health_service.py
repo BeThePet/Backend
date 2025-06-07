@@ -39,6 +39,8 @@ class HealthService:
             category=data.item,
             status=data.status,
             memo=data.memo,
+            numeric_value=data.numeric_value,
+            unit=data.unit,
         )
         db.add(record)
         db.commit()
@@ -167,6 +169,8 @@ class HealthService:
         record.category = data.item
         record.status = data.status
         record.memo = data.memo
+        record.numeric_value = data.numeric_value
+        record.unit = data.unit
         db.commit()
         db.refresh(record)
         return record
@@ -363,3 +367,19 @@ class HealthService:
     @staticmethod
     def list_weight_records(dog_id: int, db: Session):
         return db.query(WeightRecord).filter(WeightRecord.dog_id == dog_id).all()
+
+    @staticmethod
+    def get_today_health_daily_records(dog_id: int, db: Session):
+        """오늘 날짜의 모든 헬스 데일리 기록을 조회합니다."""
+        today = datetime.now(tz=KST).date()
+        return (
+            db.query(HealthCheck)
+            .filter(
+                HealthCheck.dog_id == dog_id, func.date(HealthCheck.created_at) == today
+            )
+            .all()
+        )
+
+    @staticmethod
+    def list_health_daily_records(dog_id: int, db: Session):
+        return db.query(HealthCheck).filter(HealthCheck.dog_id == dog_id).all()

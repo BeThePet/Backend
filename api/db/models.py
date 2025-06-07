@@ -1,14 +1,13 @@
 import uuid
 from datetime import datetime
 
+from core.base import TimeStampMixin
 from db.enums import HealthStatus, HospitalType, Specialty
 from sqlalchemy import ARRAY, Boolean, Column, Date, DateTime
 from sqlalchemy import Enum as SQLAlchemyEnum
 from sqlalchemy import Float, ForeignKey, Integer, String, Text, Time, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
-
-from core.base import TimeStampMixin
 
 from .base import Base
 
@@ -145,8 +144,10 @@ class HealthCheck(Base, TimeStampMixin):
     dog_id = Column(Integer, ForeignKey("dogs.id"), nullable=False)
     category = Column(
         String(20), nullable=False
-    )  # e.g., appetite, vitality, hydration, etc.
-    status = Column(SQLAlchemyEnum(HealthStatus, name="healthstatus"), nullable=False)
+    )
+    status = Column(SQLAlchemyEnum(HealthStatus), nullable=True)
+    numeric_value = Column(Float, nullable=True)  
+    unit = Column(String(10), nullable=True)  # 단위 (시간, °C 등)
     memo = Column(String(255), nullable=True)
 
     dog = relationship("Dog", back_populates="health_checks")
