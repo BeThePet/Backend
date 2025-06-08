@@ -31,6 +31,7 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
+
     # CORS 설정
     ALLOWED_ORIGINS: List[str] = [
         "http://localhost:3000",  # React 개발 서버 (직접 접근)
