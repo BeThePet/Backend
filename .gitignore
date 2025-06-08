@@ -38,6 +38,7 @@ develop-eggs/
 dist/
 downloads/
 media/
+
 eggs/
 .eggs/
 lib/
@@ -141,6 +142,7 @@ celerybeat.pid
 *.sage.py
 
 # Environments
+.env.chatbot
 .env*
 !.env.example
 .env.chatbot
