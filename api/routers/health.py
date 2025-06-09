@@ -4,7 +4,7 @@ from typing import List
 from core.security import get_current_user
 from db.models import Dog, User
 from db.session import get_db
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from api.schemas.health import (
@@ -50,6 +50,16 @@ def list_health_daily(
 ):
     dog = get_dog_or_404(current_user, db)
     return HealthService.list_health_daily_records(dog.id, db)
+
+
+@router.get("/today", response_model=List[HealthDailyResponse])
+def get_today_health_daily(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """오늘 입력된 모든 헬스 데일리 기록을 조회합니다."""
+    dog = get_dog_or_404(current_user, db)
+    return HealthService.get_today_health_daily_records(dog.id, db)
 
 
 @router.get("/{record_id}", response_model=HealthDailyResponse)

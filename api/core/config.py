@@ -33,7 +33,9 @@ class Settings(BaseSettings):
 
     # CORS 설정
     ALLOWED_ORIGINS: List[str] = [
-        "http://localhost:3000",  # React 개발 서버
+        "http://localhost:3000",  # React 개발 서버 (직접 접근)
+        "http://localhost",  # Nginx 프록시를 통한 접근
+        "http://localhost:80",  # 명시적 포트
         "https://yoon.today",  # 프로덕션 프론트엔드
         "https://api.yoon.today",  # 프로덕션 백엔드
     ]
@@ -44,6 +46,12 @@ class Settings(BaseSettings):
     # 환경 설정
     DEBUG: bool = True
     ENVIRONMENT: str = "development"  # 개발 환경에서는 development
+
+    # AWS S3 설정
+    AWS_ACCESS_KEY_ID: str = ""
+    AWS_SECRET_ACCESS_KEY: str = ""
+    AWS_S3_BUCKET_NAME: str = ""
+    AWS_S3_REGION: str = "ap-northeast-2"
 
     class Config:
         case_sensitive = True

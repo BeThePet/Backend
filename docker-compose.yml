@@ -6,7 +6,7 @@ services:
       - "443:443"
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d
-      - ./nginx/ssl:/etc/nginx/ssl
+      - /etc/letsencrypt:/etc/letsencrypt:ro
     depends_on:
       - bethepet_api
     networks:
@@ -16,8 +16,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    expose:  
-      - "8000"
+    ports:  
+      - "8000:8000"
     volumes:
       - .:/app
     env_file:
