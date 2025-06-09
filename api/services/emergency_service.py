@@ -38,7 +38,9 @@ class EmergencyService:
 
     @staticmethod
     def create_hospital(data: HospitalCreate, dog_id: int, db: Session) -> Hospital:
-        hospital = Hospital(**data.dict(), dog_id=dog_id)
+        hospital_data = data.dict()
+        hospital_data["dog_id"] = dog_id
+        hospital = Hospital(**hospital_data)
         db.add(hospital)
         db.commit()
         db.refresh(hospital)
