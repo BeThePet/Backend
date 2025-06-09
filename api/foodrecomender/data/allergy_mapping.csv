@@ -1,0 +1,138 @@
+﻿Base Ingredient,Synonym/Name,Allergy Risk,Category,Potential Symptoms
+Beef,beef meal,High to Medium,Meat/Protein,"Itchy skin, ear infections, vomiting, diarrhea"
+Beef,Beef,High to Medium,Meat/Protein,"Itchy skin, ear infections, vomiting, diarrhea"
+Chicken,chicken meal,High to Medium,Meat/Protein,"Itchy skin, ear infections, vomiting, diarrhea"
+Chicken,poultry,High to Medium,Meat/Protein,"Itchy skin, ear infections, vomiting, diarrhea"
+Chicken,chicken fat,High to Medium,Meat/Protein,"Itchy skin, ear infections, vomiting, diarrhea"
+Chicken,Chicken,High to Medium,Meat/Protein,"Itchy skin, ear infections, vomiting, diarrhea"
+Turkey,turkey meal,High to Medium,Meat/Protein,"Itchy skin, ear infections, vomiting, diarrhea"
+Turkey,Turkey,High to Medium,Meat/Protein,"Itchy skin, ear infections, vomiting, diarrhea"
+Duck,duck meal,High to Medium,Meat/Protein,"Itchy skin, ear infections, vomiting, diarrhea"
+Duck,Duck,High to Medium,Meat/Protein,"Itchy skin, ear infections, vomiting, diarrhea"
+Lamb,lamb meal,High to Medium,Meat/Protein,"Itchy skin, ear infections, vomiting, diarrhea"
+Lamb,Lamb,High to Medium,Meat/Protein,"Itchy skin, ear infections, vomiting, diarrhea"
+Pork,Pork,High to Medium,Meat/Protein,"Itchy skin, ear infections, vomiting, diarrhea"
+Venison,Venison,High to Medium,Meat/Protein,"Itchy skin, ear infections, vomiting, diarrhea"
+Rabbit,Rabbit,High to Medium,Meat/Protein,"Itchy skin, ear infections, vomiting, diarrhea"
+Kangaroo,Kangaroo,High to Medium,Meat/Protein,"Itchy skin, ear infections, vomiting, diarrhea"
+Bison,Bison,High to Medium,Meat/Protein,"Itchy skin, ear infections, vomiting, diarrhea"
+Goat,Goat,High to Medium,Meat/Protein,"Itchy skin, ear infections, vomiting, diarrhea"
+Quail,Quail,High to Medium,Meat/Protein,"Itchy skin, ear infections, vomiting, diarrhea"
+Ostrich,Ostrich,High to Medium,Meat/Protein,"Itchy skin, ear infections, vomiting, diarrhea"
+Emu,Emu,High to Medium,Meat/Protein,"Itchy skin, ear infections, vomiting, diarrhea"
+Salmon,salmon meal,Medium to Low,Fish/Seafood,"Skin irritation, digestive upset"
+Salmon,Salmon,Medium to Low,Fish/Seafood,"Skin irritation, digestive upset"
+Tuna,fish meal,Medium to Low,Fish/Seafood,"Skin irritation, digestive upset"
+Tuna,Tuna,Medium to Low,Fish/Seafood,"Skin irritation, digestive upset"
+Whitefish,white fish meal,Medium to Low,Fish/Seafood,"Skin irritation, digestive upset"
+Whitefish,Whitefish,Medium to Low,Fish/Seafood,"Skin irritation, digestive upset"
+Herring,Herring,Medium to Low,Fish/Seafood,"Skin irritation, digestive upset"
+Sardine,Sardine,Medium to Low,Fish/Seafood,"Skin irritation, digestive upset"
+Trout,Trout,Medium to Low,Fish/Seafood,"Skin irritation, digestive upset"
+Mackerel,Mackerel,Medium to Low,Fish/Seafood,"Skin irritation, digestive upset"
+Anchovy,Anchovy,Medium to Low,Fish/Seafood,"Skin irritation, digestive upset"
+Cod,Cod,Medium to Low,Fish/Seafood,"Skin irritation, digestive upset"
+Pollock,Pollock,Medium to Low,Fish/Seafood,"Skin irritation, digestive upset"
+Milk,milk powder,Medium,Dairy Products,"Diarrhea, vomiting, skin irritation"
+Milk,Milk,Medium,Dairy Products,"Diarrhea, vomiting, skin irritation"
+Cheese,cheddar,Medium,Dairy Products,"Diarrhea, vomiting, skin irritation"
+Cheese,Cheese,Medium,Dairy Products,"Diarrhea, vomiting, skin irritation"
+Yogurt,probiotic dairy,Medium,Dairy Products,"Diarrhea, vomiting, skin irritation"
+Yogurt,Yogurt,Medium,Dairy Products,"Diarrhea, vomiting, skin irritation"
+Whole Eggs,Whole Eggs,Medium,Eggs,"Skin inflammation, gastrointestinal issues"
+Egg Whites,albumin,Medium,Eggs,"Skin inflammation, gastrointestinal issues"
+Egg Whites,Egg Whites,Medium,Eggs,"Skin inflammation, gastrointestinal issues"
+Egg Yolks,Egg Yolks,Medium,Eggs,"Skin inflammation, gastrointestinal issues"
+Wheat,wheat flour,Medium to Low,Grains/Carbohydrates,"Gas, indigestion, skin irritation"
+Wheat,Wheat,Medium to Low,Grains/Carbohydrates,"Gas, indigestion, skin irritation"
+Corn,corn gluten,Medium to Low,Grains/Carbohydrates,"Gas, indigestion, skin irritation"
+Corn,Corn,Medium to Low,Grains/Carbohydrates,"Gas, indigestion, skin irritation"
+Rice,brewer's rice,Medium to Low,Grains/Carbohydrates,"Gas, indigestion, skin irritation"
+Rice,Rice,Medium to Low,Grains/Carbohydrates,"Gas, indigestion, skin irritation"
+Barley,Barley,Medium to Low,Grains/Carbohydrates,"Gas, indigestion, skin irritation"
+Oats,Oats,Medium to Low,Grains/Carbohydrates,"Gas, indigestion, skin irritation"
+Sorghum,Sorghum,Medium to Low,Grains/Carbohydrates,"Gas, indigestion, skin irritation"
+Millet,Millet,Medium to Low,Grains/Carbohydrates,"Gas, indigestion, skin irritation"
+Rye,Rye,Medium to Low,Grains/Carbohydrates,"Gas, indigestion, skin irritation"
+Buckwheat,Buckwheat,Medium to Low,Grains/Carbohydrates,"Gas, indigestion, skin irritation"
+Quinoa,Quinoa,Medium to Low,Grains/Carbohydrates,"Gas, indigestion, skin irritation"
+Amaranth,Amaranth,Medium to Low,Grains/Carbohydrates,"Gas, indigestion, skin irritation"
+Soybeans,soy protein,Medium,Legumes,"Gastrointestinal upset, skin reactions"
+Soybeans,Soybeans,Medium,Legumes,"Gastrointestinal upset, skin reactions"
+Peas,pea protein,Medium,Legumes,"Gastrointestinal upset, skin reactions"
+Peas,Peas,Medium,Legumes,"Gastrointestinal upset, skin reactions"
+Lentils,Lentils,Medium,Legumes,"Gastrointestinal upset, skin reactions"
+Chickpeas,Chickpeas,Medium,Legumes,"Gastrointestinal upset, skin reactions"
+Mung Beans,Mung Beans,Medium,Legumes,"Gastrointestinal upset, skin reactions"
+Fava Beans,Fava Beans,Medium,Legumes,"Gastrointestinal upset, skin reactions"
+Potatoes,Potatoes,Low,Vegetables,Rare digestive issues
+Sweet Potatoes,sweet potato starch,Low,Vegetables,Rare digestive issues
+Sweet Potatoes,Sweet Potatoes,Low,Vegetables,Rare digestive issues
+Carrots,carrot powder,Low,Vegetables,Rare digestive issues
+Carrots,Carrots,Low,Vegetables,Rare digestive issues
+Spinach,Spinach,Low,Vegetables,Rare digestive issues
+Kale,Kale,Low,Vegetables,Rare digestive issues
+Pumpkin,Pumpkin,Low,Vegetables,Rare digestive issues
+Zucchini,Zucchini,Low,Vegetables,Rare digestive issues
+Broccoli,Broccoli,Low,Vegetables,Rare digestive issues
+Beets,Beets,Low,Vegetables,Rare digestive issues
+Apples,apple pomace,Very Low,Fruits,Rare allergic reactions
+Apples,Apples,Very Low,Fruits,Rare allergic reactions
+Blueberries,blueberry extract,Very Low,Fruits,Rare allergic reactions
+Blueberries,Blueberries,Very Low,Fruits,Rare allergic reactions
+Cranberries,Cranberries,Very Low,Fruits,Rare allergic reactions
+Bananas,Bananas,Very Low,Fruits,Rare allergic reactions
+Pears,Pears,Very Low,Fruits,Rare allergic reactions
+Mangoes,Mangoes,Very Low,Fruits,Rare allergic reactions
+Papayas,Papayas,Very Low,Fruits,Rare allergic reactions
+Chicken Fat,animal fat,Generally Safe,Oils/Fats,Spoiled oils may cause diarrhea or stomach upset
+Chicken Fat,Chicken Fat,Generally Safe,Oils/Fats,Spoiled oils may cause diarrhea or stomach upset
+Fish Oil,omega-3 oil,Generally Safe,Oils/Fats,Spoiled oils may cause diarrhea or stomach upset
+Fish Oil,Fish Oil,Generally Safe,Oils/Fats,Spoiled oils may cause diarrhea or stomach upset
+Canola Oil,Canola Oil,Generally Safe,Oils/Fats,Spoiled oils may cause diarrhea or stomach upset
+Sunflower Oil,Sunflower Oil,Generally Safe,Oils/Fats,Spoiled oils may cause diarrhea or stomach upset
+Flaxseed Oil,Flaxseed Oil,Generally Safe,Oils/Fats,Spoiled oils may cause diarrhea or stomach upset
+Coconut Oil,Coconut Oil,Generally Safe,Oils/Fats,Spoiled oils may cause diarrhea or stomach upset
+Meat By-product Meal,Meat By-product Meal,High,By-products,"Immune reactions, skin problems"
+Poultry By-product Meal,Poultry By-product Meal,High,By-products,"Immune reactions, skin problems"
+Animal Digest,enzymatic digest,High,By-products,"Immune reactions, skin problems"
+Animal Digest,Animal Digest,High,By-products,"Immune reactions, skin problems"
+Blood Meal,hemoglobin powder,High,By-products,"Immune reactions, skin problems"
+Blood Meal,Blood Meal,High,By-products,"Immune reactions, skin problems"
+BHA,BHA,High,Additives/Preservatives,"Skin irritation, behavioral changes, digestive upset"
+BHT,BHT,High,Additives/Preservatives,"Skin irritation, behavioral changes, digestive upset"
+Ethoxyquin,Ethoxyquin,High,Additives/Preservatives,"Skin irritation, behavioral changes, digestive upset"
+Propylene Glycol,Propylene Glycol,High,Additives/Preservatives,"Skin irritation, behavioral changes, digestive upset"
+Artificial Colors,Red 40,High,Additives/Preservatives,"Skin irritation, behavioral changes, digestive upset"
+Artificial Colors,Artificial Colors,High,Additives/Preservatives,"Skin irritation, behavioral changes, digestive upset"
+Artificial Flavors,Artificial Flavors,High,Additives/Preservatives,"Skin irritation, behavioral changes, digestive upset"
+Zinc Sulfate,Zinc Sulfate,Low at high doses,Vitamins/Minerals,"Diarrhea, lethargy"
+Copper Proteinate,Copper Proteinate,Low at high doses,Vitamins/Minerals,"Diarrhea, lethargy"
+Niacin,Niacin,Low at high doses,Vitamins/Minerals,"Diarrhea, lethargy"
+Choline Chloride,Choline Chloride,Low at high doses,Vitamins/Minerals,"Diarrhea, lethargy"
+Vitamin A,Vitamin A,Low at high doses,Vitamins/Minerals,"Diarrhea, lethargy"
+Vitamin D,Vitamin D,Low at high doses,Vitamins/Minerals,"Diarrhea, lethargy"
+Vitamin E,tocopherol,Low at high doses,Vitamins/Minerals,"Diarrhea, lethargy"
+Vitamin E,Vitamin E,Low at high doses,Vitamins/Minerals,"Diarrhea, lethargy"
+Selenium,selenite,Low at high doses,Vitamins/Minerals,"Diarrhea, lethargy"
+Selenium,Selenium,Low at high doses,Vitamins/Minerals,"Diarrhea, lethargy"
+Beet Pulp,Beet Pulp,Low,Fiber Sources,"Irregular stools, gas"
+Tomato Pomace,Tomato Pomace,Low,Fiber Sources,"Irregular stools, gas"
+Alfalfa Meal,Alfalfa Meal,Low,Fiber Sources,"Irregular stools, gas"
+Cellulose,plant fiber,Low,Fiber Sources,"Irregular stools, gas"
+Cellulose,Cellulose,Low,Fiber Sources,"Irregular stools, gas"
+Chicory Root,Chicory Root,Low,Fiber Sources,"Irregular stools, gas"
+Fructooligosaccharides (FOS),Fructooligosaccharides (FOS),Low,Fiber Sources,"Irregular stools, gas"
+Inulin,Inulin,Low,Fiber Sources,"Irregular stools, gas"
+Alligator,Alligator,Low,Novel Proteins,Rare allergic reactions
+Elk,Elk,Low,Novel Proteins,Rare allergic reactions
+Moose,Moose,Low,Novel Proteins,Rare allergic reactions
+Wild Boar,Wild Boar,Low,Novel Proteins,Rare allergic reactions
+Pheasant,Pheasant,Low,Novel Proteins,Rare allergic reactions
+Camel,Camel,Low,Novel Proteins,Rare allergic reactions
+Yak,mountain ox,Low,Novel Proteins,Rare allergic reactions
+Yak,Yak,Low,Novel Proteins,Rare allergic reactions
+Black Soldier Fly Larvae,Black Soldier Fly Larvae,Low,Insect Proteins,Potential allergic reactions in sensitive dogs
+Mealworms,Mealworms,Low,Insect Proteins,Potential allergic reactions in sensitive dogs
+Crickets,acheta meal,Low,Insect Proteins,Potential allergic reactions in sensitive dogs
+Crickets,Crickets,Low,Insect Proteins,Potential allergic reactions in sensitive dogs

@@ -16,7 +16,7 @@ class AuthService:
     def authenticate_user(email: str, password: str, db: Session) -> User:
         user = db.query(User).filter(User.email == email).first()
         if not user or not pwd_context.verify(password, user.hashed_password):
-            raise HTTPException(status_code=401, detail="잘못된 로그인 정보")
+            raise HTTPException(status_code=400, detail="잘못된 로그인 정보")
         return user
 
     @staticmethod

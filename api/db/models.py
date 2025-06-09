@@ -3,7 +3,7 @@ from datetime import datetime
 
 from core.base import TimeStampMixin
 from db.enums import HealthStatus, HospitalType, Specialty
-from sqlalchemy import ARRAY, Boolean, Column, Date, DateTime
+from sqlalchemy import ARRAY, JSON, Boolean, Column, Date, DateTime
 from sqlalchemy import Enum as SQLAlchemyEnum
 from sqlalchemy import Float, ForeignKey, Integer, String, Text, Time, func
 from sqlalchemy.dialects.postgresql import UUID
@@ -259,6 +259,79 @@ class Hospital(Base, TimeStampMixin):
     dog_id = Column(Integer, ForeignKey("dogs.id"), nullable=False)
 
     dog = relationship("Dog", back_populates="hospitals")
+
+
+# 사료 제품 모델 (4500개 시드 데이터 전용)
+class FoodProduct(Base, TimeStampMixin):
+    __tablename__ = "food_products"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    # CSV 매핑용 인덱스 (추천 결과 매칭을 위해 필수)
+    csv_index = Column(Integer, nullable=True, unique=True, index=True)
+
+    # CSV 데이터 기반 기본 정보 (모두 nullable=True로 설정)
+    product_name = Column(String(500), nullable=True, index=True)  # Product name
+    url = Column(String(1000), nullable=True)  # Url
+    brand = Column(String(200), nullable=True, index=True)  # Brand
+    price = Column(Float, nullable=True)  # Price
+    ingredients = Column(Text, nullable=True)  # Ingredients
+    calorie_content = Column(String(500), nullable=True)  # Calorie Content
+
+    # 영양소 성분 (추천 알고리즘 핵심 데이터)
+    protein_pct = Column(Float, nullable=True)  # 단백질 %
+    fat_pct = Column(Float, nullable=True)  # 지방 %
+    fiber_pct = Column(Float, nullable=True)  # 섬유질 %
+    moisture_pct = Column(Float, nullable=True)  # 수분 %
+    calcium_pct = Column(Float, nullable=True)  # 칼슘 %
+    phosphorus_pct = Column(Float, nullable=True)  # 인 %
+    sodium_pct = Column(Float, nullable=True)  # 나트륨 %
+    omega_6_pct = Column(Float, nullable=True)  # 오메가6 %
+    omega_3_pct = Column(Float, nullable=True)  # 오메가3 %
+
+    # 관계
+    feedbacks = relationship("FoodFeedback", back_populates="food_product")
+
+
+# 사료 피드백 모델 (평점만 - 최대한 단순화)
+class FoodFeedback(Base, TimeStampMixin):
+    __tablename__ = "food_feedback"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    dog_id = Column(Integer, ForeignKey("dogs.id"), nullable=False)
+    food_product_id = Column(Integer, ForeignKey("food_products.id"), nullable=False)
+
+    # 평점 (1.0 ~ 5.0, 0.5 단위)
+    rating = Column(Float, nullable=False)
+
+    user = relationship("User")
+    dog = relationship("Dog")
+    food_product = relationship("FoodProduct", back_populates="feedbacks")
+
+
+# 추천 결과 저장 모델 (새로 추가)
+class FoodRecommendationHistory(Base, TimeStampMixin):
+    __tablename__ = "food_recommendation_history"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    dog_id = Column(Integer, ForeignKey("dogs.id"), nullable=False)
+
+    # 요청 데이터 (JSON으로 저장)
+    pet_data = Column(JSON, nullable=False)
+    diseases = Column(ARRAY(String), nullable=True)
+    realtime_data = Column(JSON, nullable=True)
+
+    # 추천 결과 (JSON으로 저장)
+    recommendations = Column(JSON, nullable=False)
+
+    # 메타데이터
+    algorithm_version = Column(String(50), nullable=True)
+    confidence_score = Column(Float, nullable=True)
+
+    user = relationship("User")
+    dog = relationship("Dog")
 
 
 class EmergencyGuide(Base, TimeStampMixin):
