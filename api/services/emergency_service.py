@@ -18,23 +18,27 @@ class EmergencyService:
 
     @staticmethod
     def get_all_hospitals(
-        db: Session, type_filter: Optional[HospitalType] = None
+        db: Session, dog_id: int, type_filter: Optional[HospitalType] = None
     ) -> List[Hospital]:
-        query = db.query(Hospital)
+        query = db.query(Hospital).filter(Hospital.dog_id == dog_id)
         if type_filter:
             query = query.filter(Hospital.type == type_filter)
         return query.all()
 
     @staticmethod
     def get_hospitals_by_type(
-        db: Session, hospital_type: HospitalType
+        db: Session, dog_id: int, hospital_type: HospitalType
     ) -> List[Hospital]:
         """특정 타입의 병원 목록 조회"""
-        return db.query(Hospital).filter(Hospital.type == hospital_type).all()
+        return (
+            db.query(Hospital)
+            .filter(Hospital.dog_id == dog_id, Hospital.type == hospital_type)
+            .all()
+        )
 
     @staticmethod
-    def create_hospital(data: HospitalCreate, db: Session) -> Hospital:
-        hospital = Hospital(**data.dict())
+    def create_hospital(data: HospitalCreate, dog_id: int, db: Session) -> Hospital:
+        hospital = Hospital(**data.dict(), dog_id=dog_id)
         db.add(hospital)
         db.commit()
         db.refresh(hospital)
@@ -42,9 +46,13 @@ class EmergencyService:
 
     @staticmethod
     def update_hospital(
-        hospital_id: int, data: HospitalUpdate, db: Session
+        hospital_id: int, dog_id: int, data: HospitalUpdate, db: Session
     ) -> Hospital:
-        hospital = db.query(Hospital).filter(Hospital.id == hospital_id).first()
+        hospital = (
+            db.query(Hospital)
+            .filter(Hospital.id == hospital_id, Hospital.dog_id == dog_id)
+            .first()
+        )
         if not hospital:
             raise ValueError("해당 병원을 찾을 수 없습니다.")
         for field, value in data.dict(exclude_unset=True).items():
@@ -54,18 +62,22 @@ class EmergencyService:
         return hospital
 
     @staticmethod
-    def delete_hospital(hospital_id: int, db: Session) -> None:
-        hospital = db.query(Hospital).filter(Hospital.id == hospital_id).first()
+    def delete_hospital(hospital_id: int, dog_id: int, db: Session) -> None:
+        hospital = (
+            db.query(Hospital)
+            .filter(Hospital.id == hospital_id, Hospital.dog_id == dog_id)
+            .first()
+        )
         if not hospital:
             raise ValueError("해당 병원을 찾을 수 없습니다.")
         db.delete(hospital)
         db.commit()
 
     @staticmethod
-    def get_emergency_hospital_summaries(db: Session) -> List[Hospital]:
+    def get_emergency_hospital_summaries(db: Session, dog_id: int) -> List[Hospital]:
         return (
             db.query(Hospital.id, Hospital.name, Hospital.phone)
-            .filter(Hospital.is_emergency == True)
+            .filter(Hospital.dog_id == dog_id, Hospital.is_emergency == True)
             .all()
         )
 

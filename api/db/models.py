@@ -50,6 +50,7 @@ class Dog(Base, TimeStampMixin):
     weight_records = relationship("WeightRecord", back_populates="dog")
     medications = relationship("Medication", back_populates="dog")
     vaccinations = relationship("VaccinationRecord", back_populates="dog")
+    hospitals = relationship("Hospital", back_populates="dog")
 
 
 class Breed(Base):
@@ -255,6 +256,9 @@ class Hospital(Base, TimeStampMixin):
     hours = Column(String(100), nullable=True)
     notes = Column(String(255), nullable=True)
     specialties = Column(ARRAY(SQLAlchemyEnum(Specialty, name="specialty_enum")))
+    dog_id = Column(Integer, ForeignKey("dogs.id"), nullable=False)
+
+    dog = relationship("Dog", back_populates="hospitals")
 
 
 class EmergencyGuide(Base, TimeStampMixin):
