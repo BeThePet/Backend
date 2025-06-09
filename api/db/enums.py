@@ -1,14 +1,17 @@
 import enum
 
+
 class HealthStatus(str, enum.Enum):
     normal = "정상"
     warning = "주의"
     abnormal = "이상"
 
+
 class HospitalType(str, enum.Enum):
     REGULAR = "일반 병원"
     EMERGENCY = "응급 병원"
     SPECIALIST = "전문 병원"
+
 
 class Specialty(str, enum.Enum):
     GENERAL = "일반 진료"

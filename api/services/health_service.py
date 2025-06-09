@@ -27,7 +27,7 @@ class HealthService:
             .filter(
                 HealthCheck.dog_id == dog_id,
                 func.date(HealthCheck.created_at) == today,
-                HealthCheck.category == data.item,
+                HealthCheck.category == data.category,
             )
             .first()
         )
@@ -36,7 +36,7 @@ class HealthService:
 
         record = HealthCheck(
             dog_id=dog_id,
-            category=data.item,
+            category=data.category,
             status=data.status,
             memo=data.memo,
             numeric_value=data.numeric_value,
@@ -146,7 +146,6 @@ class HealthService:
 
         record = WeightRecord(
             dog_id=dog_id,
-            date=data.date,
             weight_kg=data.weight_kg,
         )
         db.add(record)
@@ -154,19 +153,36 @@ class HealthService:
         db.refresh(record)
         return record
 
-    # HealthDailyRecord CRUD
+    # HealthDailyRecord CRUD with user verification
     @staticmethod
-    def get_health_daily_record_by_id(record_id: int, db: Session):
-        return db.query(HealthCheck).filter(HealthCheck.id == record_id).first()
+    def get_health_daily_record(record_id: int, user_id: int, db: Session):
+        from db.models import Dog
+
+        record = (
+            db.query(HealthCheck)
+            .join(Dog, HealthCheck.dog_id == Dog.id)
+            .filter(HealthCheck.id == record_id, Dog.user_id == user_id)
+            .first()
+        )
+        if not record:
+            raise ValueError("기록을 찾을 수 없거나 접근 권한이 없습니다.")
+        return record
 
     @staticmethod
     def update_health_daily_record(
-        record_id: int, data: HealthDailyCreate, db: Session
+        record_id: int, user_id: int, data: HealthDailyCreate, db: Session
     ):
-        record = db.query(HealthCheck).filter(HealthCheck.id == record_id).first()
+        from db.models import Dog
+
+        record = (
+            db.query(HealthCheck)
+            .join(Dog, HealthCheck.dog_id == Dog.id)
+            .filter(HealthCheck.id == record_id, Dog.user_id == user_id)
+            .first()
+        )
         if not record:
-            raise ValueError("기록을 찾을 수 없습니다.")
-        record.category = data.item
+            raise ValueError("기록을 찾을 수 없거나 접근 권한이 없습니다.")
+        record.category = data.category
         record.status = data.status
         record.memo = data.memo
         record.numeric_value = data.numeric_value
@@ -176,23 +192,54 @@ class HealthService:
         return record
 
     @staticmethod
-    def delete_health_daily_record(record_id: int, db: Session):
-        record = db.query(HealthCheck).filter(HealthCheck.id == record_id).first()
+    def delete_health_daily_record(record_id: int, user_id: int, db: Session):
+        from db.models import Dog
+
+        record = (
+            db.query(HealthCheck)
+            .join(Dog, HealthCheck.dog_id == Dog.id)
+            .filter(HealthCheck.id == record_id, Dog.user_id == user_id)
+            .first()
+        )
         if not record:
-            raise ValueError("기록을 찾을 수 없습니다.")
+            raise ValueError("기록을 찾을 수 없거나 접근 권한이 없습니다.")
         db.delete(record)
         db.commit()
 
-    # WalkRecord CRUD
+    # Legacy methods (kept for backward compatibility)
     @staticmethod
-    def get_walk_record_by_id(record_id: int, db: Session):
-        return db.query(WalkRecord).filter(WalkRecord.id == record_id).first()
+    def get_health_daily_record_by_id(record_id: int, db: Session):
+        return db.query(HealthCheck).filter(HealthCheck.id == record_id).first()
+
+    # WalkRecord CRUD with user verification
+    @staticmethod
+    def get_walk_record(record_id: int, user_id: int, db: Session):
+        from db.models import Dog
+
+        record = (
+            db.query(WalkRecord)
+            .join(Dog, WalkRecord.dog_id == Dog.id)
+            .filter(WalkRecord.id == record_id, Dog.user_id == user_id)
+            .first()
+        )
+        if not record:
+            raise ValueError("기록을 찾을 수 없거나 접근 권한이 없습니다.")
+        return record
 
     @staticmethod
-    def update_walk_record(record_id: int, data: WalkRecordCreate, db: Session):
-        record = db.query(WalkRecord).filter(WalkRecord.id == record_id).first()
+    def update_walk_record(
+        record_id: int, user_id: int, data: WalkRecordCreate, db: Session
+    ):
+        from db.models import Dog
+
+        record = (
+            db.query(WalkRecord)
+            .join(Dog, WalkRecord.dog_id == Dog.id)
+            .filter(WalkRecord.id == record_id, Dog.user_id == user_id)
+            .first()
+        )
         if not record:
-            raise ValueError("기록을 찾을 수 없습니다.")
+            raise ValueError("기록을 찾을 수 없거나 접근 권한이 없습니다.")
         record.distance_km = data.distance_km
         record.duration_min = data.duration_min
         db.commit()
@@ -200,23 +247,54 @@ class HealthService:
         return record
 
     @staticmethod
-    def delete_walk_record(record_id: int, db: Session):
-        record = db.query(WalkRecord).filter(WalkRecord.id == record_id).first()
+    def delete_walk_record(record_id: int, user_id: int, db: Session):
+        from db.models import Dog
+
+        record = (
+            db.query(WalkRecord)
+            .join(Dog, WalkRecord.dog_id == Dog.id)
+            .filter(WalkRecord.id == record_id, Dog.user_id == user_id)
+            .first()
+        )
         if not record:
-            raise ValueError("기록을 찾을 수 없습니다.")
+            raise ValueError("기록을 찾을 수 없거나 접근 권한이 없습니다.")
         db.delete(record)
         db.commit()
 
-    # FoodRecord CRUD
+    # Legacy methods
     @staticmethod
-    def get_food_record_by_id(record_id: int, db: Session):
-        return db.query(FoodRecord).filter(FoodRecord.id == record_id).first()
+    def get_walk_record_by_id(record_id: int, db: Session):
+        return db.query(WalkRecord).filter(WalkRecord.id == record_id).first()
+
+    # FoodRecord CRUD with user verification
+    @staticmethod
+    def get_food_record(record_id: int, user_id: int, db: Session):
+        from db.models import Dog
+
+        record = (
+            db.query(FoodRecord)
+            .join(Dog, FoodRecord.dog_id == Dog.id)
+            .filter(FoodRecord.id == record_id, Dog.user_id == user_id)
+            .first()
+        )
+        if not record:
+            raise ValueError("기록을 찾을 수 없거나 접근 권한이 없습니다.")
+        return record
 
     @staticmethod
-    def update_food_record(record_id: int, data: FoodRecordCreate, db: Session):
-        record = db.query(FoodRecord).filter(FoodRecord.id == record_id).first()
+    def update_food_record(
+        record_id: int, user_id: int, data: FoodRecordCreate, db: Session
+    ):
+        from db.models import Dog
+
+        record = (
+            db.query(FoodRecord)
+            .join(Dog, FoodRecord.dog_id == Dog.id)
+            .filter(FoodRecord.id == record_id, Dog.user_id == user_id)
+            .first()
+        )
         if not record:
-            raise ValueError("기록을 찾을 수 없습니다.")
+            raise ValueError("기록을 찾을 수 없거나 접근 권한이 없습니다.")
         record.time = data.time
         record.brand = data.brand
         record.amount_g = data.amount_g
@@ -225,58 +303,131 @@ class HealthService:
         return record
 
     @staticmethod
-    def delete_food_record(record_id: int, db: Session):
-        record = db.query(FoodRecord).filter(FoodRecord.id == record_id).first()
+    def delete_food_record(record_id: int, user_id: int, db: Session):
+        from db.models import Dog
+
+        record = (
+            db.query(FoodRecord)
+            .join(Dog, FoodRecord.dog_id == Dog.id)
+            .filter(FoodRecord.id == record_id, Dog.user_id == user_id)
+            .first()
+        )
         if not record:
-            raise ValueError("기록을 찾을 수 없습니다.")
+            raise ValueError("기록을 찾을 수 없거나 접근 권한이 없습니다.")
         db.delete(record)
         db.commit()
 
-    # WaterRecord CRUD
+    # Legacy methods
     @staticmethod
-    def get_water_record_by_id(record_id: int, db: Session):
-        return db.query(WaterIntake).filter(WaterIntake.id == record_id).first()
+    def get_food_record_by_id(record_id: int, db: Session):
+        return db.query(FoodRecord).filter(FoodRecord.id == record_id).first()
+
+    # WaterRecord CRUD with user verification
+    @staticmethod
+    def get_water_record(record_id: int, user_id: int, db: Session):
+        from db.models import Dog
+
+        record = (
+            db.query(WaterIntake)
+            .join(Dog, WaterIntake.dog_id == Dog.id)
+            .filter(WaterIntake.id == record_id, Dog.user_id == user_id)
+            .first()
+        )
+        if not record:
+            raise ValueError("기록을 찾을 수 없거나 접근 권한이 없습니다.")
+        return record
 
     @staticmethod
-    def update_water_record(record_id: int, data: WaterRecordCreate, db: Session):
-        record = db.query(WaterIntake).filter(WaterIntake.id == record_id).first()
+    def update_water_record(
+        record_id: int, user_id: int, data: WaterRecordCreate, db: Session
+    ):
+        from db.models import Dog
+
+        record = (
+            db.query(WaterIntake)
+            .join(Dog, WaterIntake.dog_id == Dog.id)
+            .filter(WaterIntake.id == record_id, Dog.user_id == user_id)
+            .first()
+        )
         if not record:
-            raise ValueError("기록을 찾을 수 없습니다.")
+            raise ValueError("기록을 찾을 수 없거나 접근 권한이 없습니다.")
         record.amount_ml = data.amount_ml
         db.commit()
         db.refresh(record)
         return record
 
     @staticmethod
-    def delete_water_record(record_id: int, db: Session):
-        record = db.query(WaterIntake).filter(WaterIntake.id == record_id).first()
+    def delete_water_record(record_id: int, user_id: int, db: Session):
+        from db.models import Dog
+
+        record = (
+            db.query(WaterIntake)
+            .join(Dog, WaterIntake.dog_id == Dog.id)
+            .filter(WaterIntake.id == record_id, Dog.user_id == user_id)
+            .first()
+        )
         if not record:
-            raise ValueError("기록을 찾을 수 없습니다.")
+            raise ValueError("기록을 찾을 수 없거나 접근 권한이 없습니다.")
         db.delete(record)
         db.commit()
 
-    # WeightRecord CRUD
+    # WeightRecord CRUD with user verification
     @staticmethod
-    def get_weight_record_by_id(record_id: int, db: Session):
-        return db.query(WeightRecord).filter(WeightRecord.id == record_id).first()
+    def get_weight_record(record_id: int, user_id: int, db: Session):
+        from db.models import Dog
+
+        record = (
+            db.query(WeightRecord)
+            .join(Dog, WeightRecord.dog_id == Dog.id)
+            .filter(WeightRecord.id == record_id, Dog.user_id == user_id)
+            .first()
+        )
+        if not record:
+            raise ValueError("기록을 찾을 수 없거나 접근 권한이 없습니다.")
+        return record
 
     @staticmethod
-    def update_weight_record(record_id: int, data: WeightRecordCreate, db: Session):
-        record = db.query(WeightRecord).filter(WeightRecord.id == record_id).first()
+    def update_weight_record(
+        record_id: int, user_id: int, data: WeightRecordCreate, db: Session
+    ):
+        from db.models import Dog
+
+        record = (
+            db.query(WeightRecord)
+            .join(Dog, WeightRecord.dog_id == Dog.id)
+            .filter(WeightRecord.id == record_id, Dog.user_id == user_id)
+            .first()
+        )
         if not record:
-            raise ValueError("기록을 찾을 수 없습니다.")
+            raise ValueError("기록을 찾을 수 없거나 접근 권한이 없습니다.")
         record.weight_kg = data.weight_kg
         db.commit()
         db.refresh(record)
         return record
 
     @staticmethod
-    def delete_weight_record(record_id: int, db: Session):
-        record = db.query(WeightRecord).filter(WeightRecord.id == record_id).first()
+    def delete_weight_record(record_id: int, user_id: int, db: Session):
+        from db.models import Dog
+
+        record = (
+            db.query(WeightRecord)
+            .join(Dog, WeightRecord.dog_id == Dog.id)
+            .filter(WeightRecord.id == record_id, Dog.user_id == user_id)
+            .first()
+        )
         if not record:
-            raise ValueError("기록을 찾을 수 없습니다.")
+            raise ValueError("기록을 찾을 수 없거나 접근 권한이 없습니다.")
         db.delete(record)
         db.commit()
+
+    # Legacy methods
+    @staticmethod
+    def get_water_record_by_id(record_id: int, db: Session):
+        return db.query(WaterIntake).filter(WaterIntake.id == record_id).first()
+
+    @staticmethod
+    def get_weight_record_by_id(record_id: int, db: Session):
+        return db.query(WeightRecord).filter(WeightRecord.id == record_id).first()
 
     # Weekly_report_GET
     @staticmethod
@@ -312,12 +463,33 @@ class HealthService:
         )
 
         health_check_count = (
-            db.query(HealthCheck)
+            db.query(func.count(func.distinct(func.date(HealthCheck.created_at))))
             .filter(
                 HealthCheck.dog_id == dog_id,
                 func.date(HealthCheck.created_at).between(week_start, week_end),
             )
-            .count()
+            .scalar()
+            or 0
+        )
+
+        water_count = (
+            db.query(func.count(func.distinct(func.date(WaterIntake.created_at))))
+            .filter(
+                WaterIntake.dog_id == dog_id,
+                func.date(WaterIntake.created_at).between(week_start, week_end),
+            )
+            .scalar()
+            or 0
+        )
+
+        food_count = (
+            db.query(func.count(func.distinct(func.date(FoodRecord.created_at))))
+            .filter(
+                FoodRecord.dog_id == dog_id,
+                func.date(FoodRecord.created_at).between(week_start, week_end),
+            )
+            .scalar()
+            or 0
         )
 
         total_water = (
@@ -348,6 +520,8 @@ class HealthService:
             avg_walk_distance=avg_walk_distance,
             walk_count=walk_count,
             health_check_count=health_check_count,
+            water_count=water_count,
+            food_count=food_count,
             total_water_ml=total_water,
             total_food_g=total_food,
         )

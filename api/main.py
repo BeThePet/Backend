@@ -7,6 +7,7 @@ from api.core.config import settings
 from api.db.session import engine
 from api.routers import (
     dog,
+    dog_image,
     emergency,
     health,
     mbti,
@@ -59,6 +60,7 @@ def on_startup():
 
 app.include_router(user.router, prefix="/user", tags=["User"])
 app.include_router(dog.router, prefix="/dog", tags=["Dog"])
+app.include_router(dog_image.router, prefix="/dog-image", tags=["Dog Image"])
 app.include_router(option.router, prefix="/option", tags=["Option"])
 app.include_router(mbti.router, prefix="/mbti", tags=["Mbti"])
 app.include_router(health.router, prefix="/health", tags=["Health"])

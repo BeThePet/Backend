@@ -33,6 +33,7 @@ class Dog(Base, TimeStampMixin):
     weight = Column(Float, nullable=False)
     gender = Column(String(10), nullable=False)
     current_medication = Column(String(255), nullable=True)
+    profile_image_url = Column(String(500), nullable=True)
 
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     breed_id = Column(Integer, ForeignKey("breeds.id"), nullable=False)
@@ -142,11 +143,9 @@ class HealthCheck(Base, TimeStampMixin):
 
     id = Column(Integer, primary_key=True)
     dog_id = Column(Integer, ForeignKey("dogs.id"), nullable=False)
-    category = Column(
-        String(20), nullable=False
-    )
+    category = Column(String(20), nullable=False)
     status = Column(SQLAlchemyEnum(HealthStatus), nullable=True)
-    numeric_value = Column(Float, nullable=True)  
+    numeric_value = Column(Float, nullable=True)
     unit = Column(String(10), nullable=True)  # 단위 (시간, °C 등)
     memo = Column(String(255), nullable=True)
 

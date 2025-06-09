@@ -49,6 +49,7 @@ class DogResponse(BaseModel):
     weight: float
     gender: Gender
     medication: Optional[str]
+    profile_image_url: Optional[str]
     breed_name: Optional[str]
     allergy_names: List[str]
     disease_names: List[str]
@@ -85,3 +86,7 @@ class MbtiResultResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class DogImageResponse(BaseModel):
+    profile_image_url: Optional[str]

@@ -1,3 +1,7 @@
+import os
+from datetime import datetime, timedelta
+
+from core.config import settings
 from core.token_manager import TokenManager
 from db.models import User
 from fastapi import HTTPException, Request, Response
@@ -26,8 +30,23 @@ class AuthService:
 
     @staticmethod
     def set_auth_cookies(response: Response, access_token: str, refresh_token: str):
-        response.set_cookie(key="access_token", value=access_token, httponly=True)
-        response.set_cookie(key="refresh_token", value=refresh_token, httponly=True)
+        # 로컬 개발용 간단한 설정
+        response.set_cookie(
+            key="access_token",
+            value=access_token,
+            httponly=True,
+            samesite="Lax",  # 로컬에서는 Lax로 충분
+            secure=False,  # HTTP 허용
+            path="/",
+        )
+        response.set_cookie(
+            key="refresh_token",
+            value=refresh_token,
+            httponly=True,
+            samesite="Lax",
+            secure=False,
+            path="/",
+        )
         return response
 
     @staticmethod
@@ -55,8 +74,8 @@ class AuthService:
 
     @staticmethod
     def clear_auth_cookies(response: Response):
-        response.delete_cookie("access_token")
-        response.delete_cookie("refresh_token")
+        response.delete_cookie("access_token", path="/")
+        response.delete_cookie("refresh_token", path="/")
         return response
 
     @staticmethod
@@ -69,8 +88,14 @@ class AuthService:
             payload = TokenManager.decode_token(token)
             email = payload.get("sub")
             new_access_token = TokenManager.create_access_token(data={"sub": email})
+
             response.set_cookie(
-                key="access_token", value=new_access_token, httponly=True
+                key="access_token",
+                value=new_access_token,
+                httponly=True,
+                samesite="Lax",
+                secure=False,
+                path="/",
             )
             return new_access_token
         except:

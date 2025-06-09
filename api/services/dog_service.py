@@ -129,6 +129,7 @@ class DogService:
             weight=dog.weight,
             gender=dog.gender,
             medication=dog.current_medication,
+            profile_image_url=dog.profile_image_url,
             breed_name=dog.breed.name if dog.breed else None,
             allergy_names=[da.allergy.name for da in dog.allergies],
             disease_names=[dd.disease.name for dd in dog.diseases],
@@ -140,10 +141,8 @@ class DogService:
         if not dog:
             raise HTTPException(status_code=404, detail="등록된 반려견이 없습니다.")
 
-        
         db.query(DogAllergy).filter(DogAllergy.dog_id == dog.id).delete()
         db.query(DogDisease).filter(DogDisease.dog_id == dog.id).delete()
 
-        
         db.delete(dog)
         db.commit()

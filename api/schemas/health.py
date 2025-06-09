@@ -1,4 +1,4 @@
-from datetime import date, time
+from datetime import date, datetime, time
 from enum import Enum
 from typing import List, Optional
 
@@ -15,8 +15,8 @@ class HealthCheckItem(str, Enum):
 
 
 class HealthDailyCreate(BaseModel):
-    item: HealthCheckItem
-    status: Optional[HealthStatus] = None  
+    category: HealthCheckItem  # DB 모델과 일치시킴
+    status: Optional[HealthStatus] = None
     memo: Optional[str] = None
     # 수치형 데이터 지원 (수면, 체온 등)
     numeric_value: Optional[float] = None  # 수치값 (예: 7.5시간, 38.2°C)
@@ -32,23 +32,29 @@ class HealthDailyCreate(BaseModel):
             )
 
         # 수면/체온은 수치형 권장, 식욕/활력/배변상태는 상태형 권장
-        if self.item in ["수면", "체온"] and not self.numeric_value:
+        if self.category in ["수면", "체온"] and not self.numeric_value:
             raise ValueError(
-                f"{self.item}은 수치값(numeric_value)을 제공하는 것이 권장됩니다"
+                f"{self.category}은 수치값(numeric_value)을 제공하는 것이 권장됩니다"
             )
 
-        if self.item in ["식욕", "활력", "배변상태"] and not self.status:
-            raise ValueError(f"{self.item}은 상태값(status)을 제공하는 것이 권장됩니다")
+        if self.category in ["식욕", "활력", "배변상태"] and not self.status:
+            raise ValueError(
+                f"{self.category}은 상태값(status)을 제공하는 것이 권장됩니다"
+            )
 
 
 class HealthDailyResponse(BaseModel):
     id: int
-    item: HealthCheckItem
+    category: HealthCheckItem  # DB 모델의 category 필드와 일치시킴
     status: Optional[HealthStatus] = None  # nullable 지원
     memo: Optional[str]
     # 수치형 데이터 지원
     numeric_value: Optional[float] = None
     unit: Optional[str] = None
+    # 타임스탬프 필드 추가
+    created_at: datetime
+    updated_at: datetime
+    deleted_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True
@@ -63,6 +69,10 @@ class WalkRecordResponse(BaseModel):
     id: int
     distance_km: float
     duration_min: int
+    # 타임스탬프 필드 추가
+    created_at: datetime
+    updated_at: datetime
+    deleted_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True
@@ -79,6 +89,10 @@ class FoodRecordResponse(BaseModel):
     time: time
     brand: Optional[str]
     amount_g: int
+    # 타임스탬프 필드 추가
+    created_at: datetime
+    updated_at: datetime
+    deleted_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True
@@ -91,6 +105,10 @@ class WaterRecordCreate(BaseModel):
 class WaterRecordResponse(BaseModel):
     id: int
     amount_ml: int
+    # 타임스탬프 필드 추가
+    created_at: datetime
+    updated_at: datetime
+    deleted_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True
@@ -103,6 +121,10 @@ class WeightRecordCreate(BaseModel):
 class WeightRecordResponse(BaseModel):
     id: int
     weight_kg: float
+    # 타임스탬프 필드 추가
+    created_at: datetime
+    updated_at: datetime
+    deleted_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True
@@ -116,15 +138,18 @@ class WeeklyReportResponse(BaseModel):
     avg_walk_distance: Optional[float]
     walk_count: int
     health_check_count: int
+    water_count: int  # 물을 마신 날짜 수 
+    food_count: int  # 사료를 먹인 날짜 수
     total_water_ml: int
     total_food_g: int
 
 
 class HealthInsightResponse(BaseModel):
-    score: int  
-    status: str  
-    insights: List[str]  
-    score_breakdown: List[str]  
+    score: int
+    status: str
+    insights: List[str]
+    score_breakdown: List[str]
+
     class Config:
         from_attributes = True
 
@@ -152,9 +177,9 @@ class ActivityStatsResponse(BaseModel):
 
 
 class HealthItemStatsResponse(BaseModel):
-    item: str  
-    count: int  
-    status: str  
+    category: str  # item → category로 통일
+    count: int
+    status: str
     normal_count: Optional[int] = None
     abnormal_count: Optional[int] = None
     abnormal_ratio: Optional[str] = None

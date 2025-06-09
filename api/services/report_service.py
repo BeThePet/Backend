@@ -136,8 +136,13 @@ class ReportService:
         total_water_amount = sum(r.amount_ml for r in water_records)
         avg_water_amount = total_water_amount / water_count if water_count > 0 else 0
 
-        # 건강 체크 통계 (null status 처리)
-        health_check_count = len(health_checks)
+        # 건강 체크 통계 (날짜별 카운트)
+        # 날짜별로 그룹화하여 고유한 날짜 수 계산
+        health_check_dates = set()
+        for h in health_checks:
+            health_check_dates.add(h.created_at.date())
+        health_check_count = len(health_check_dates)
+
         health_check_abnormal_count = len(
             [
                 h
@@ -228,7 +233,7 @@ class ReportService:
                         explanation = f"평균 체온이 {round(average, 1)}°C로 정상 범위 내에 있습니다."
 
                 return HealthItemStatsResponse(
-                    item=category,
+                    category=category,
                     count=count,
                     status=status,
                     average_value=round(average, 1),
@@ -242,7 +247,7 @@ class ReportService:
         if not status_checks:
             # 모든 데이터가 수치형인 경우
             return HealthItemStatsResponse(
-                item=category,
+                category=category,
                 count=count,
                 status="정상",
                 explanation=f"{category} 데이터가 수치형으로만 기록되어 상태 분석이 불가능합니다.",
@@ -294,7 +299,7 @@ class ReportService:
                 explanation += f" 무른 변이 {soft_count}회 있었습니다."
 
         return HealthItemStatsResponse(
-            item=category,
+            category=category,
             count=count,
             status=status,
             normal_count=normal_count,
@@ -359,35 +364,35 @@ class ReportService:
 
         # 건강 체크 항목별 세밀한 감점 (프론트엔드 로직)
         for detail in health_check_details:
-            if detail.item == "식욕":
+            if detail.category == "식욕":
                 if detail.status == "주의":
                     score -= 8
                     score_breakdown.append("식욕 주의(-8)")
                 elif detail.status == "이상":
                     score -= 15
                     score_breakdown.append("식욕 이상(-15)")
-            elif detail.item == "활력":
+            elif detail.category == "활력":
                 if detail.status == "주의":
                     score -= 8
                     score_breakdown.append("활력 주의(-8)")
                 elif detail.status == "이상":
                     score -= 15
                     score_breakdown.append("활력 이상(-15)")
-            elif detail.item == "배변상태":
+            elif detail.category == "배변상태":
                 if detail.status == "주의":
                     score -= 10
                     score_breakdown.append("배변 주의(-10)")
                 elif detail.status == "이상":
                     score -= 20
                     score_breakdown.append("배변 이상(-20)")
-            elif detail.item == "수면":
+            elif detail.category == "수면":
                 if detail.status == "주의":
                     score -= 5
                     score_breakdown.append("수면 주의(-5)")
                 elif detail.status == "이상":
                     score -= 10
                     score_breakdown.append("수면 이상(-10)")
-            elif detail.item == "체온":
+            elif detail.category == "체온":
                 if detail.status == "주의":
                     score -= 10
                     score_breakdown.append("체온 주의(-10)")
@@ -465,7 +470,9 @@ class ReportService:
 
         # 건강 체크 인사이트
         health_concerns = [
-            detail.item for detail in health_check_details if detail.status != "정상"
+            detail.category
+            for detail in health_check_details
+            if detail.status != "정상"
         ]
 
         if health_concerns:
