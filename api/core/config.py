@@ -45,8 +45,8 @@ class Settings(BaseSettings):
 
     # 환경 설정
     DEBUG: bool = False
-    # ENVIRONMENT: str = "production"
-    ENVIRONMENT: str = "development"  # 프로덕션 환경
+    ENVIRONMENT: str = "production"
+    #ENVIRONMENT: str = "development"  # 프로덕션 환경
 
     # AWS S3 설정
     AWS_ACCESS_KEY_ID: str = ""
