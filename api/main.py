@@ -9,6 +9,7 @@ from api.routers import (
     dog,
     dog_image,
     emergency,
+    food,
     health,
     mbti,
     medic,
@@ -68,3 +69,4 @@ app.include_router(report.router, prefix="/report", tags=["Report"])
 app.include_router(medic.router, prefix="/medication", tags=["Medication"])
 app.include_router(vaccine.router, prefix="/vaccine", tags=["Vaccine"])
 app.include_router(emergency.router, prefix="/emergency", tags=["Emergency"])
+app.include_router(food.router, prefix="/food", tags=["Food"])

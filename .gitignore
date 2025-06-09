@@ -38,6 +38,7 @@ develop-eggs/
 dist/
 downloads/
 media/
+
 eggs/
 .eggs/
 lib/
@@ -141,10 +142,12 @@ celerybeat.pid
 *.sage.py
 
 # Environments
+.env.chatbot
 .env*
 !.env.example
 .env.chatbot
 .env
+.env.chatbot
 .env.dev
 .env.prod
 .venv
@@ -282,3 +285,6 @@ poetry.toml
 pyrightconfig.json
 
 # End of https://www.toptal.com/developers/gitignore/api/python,django,database
+
+__pycache__/
+*.pyc
