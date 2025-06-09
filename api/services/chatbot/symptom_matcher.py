@@ -3,9 +3,9 @@ from pathlib import Path
 from typing import List, Tuple
 
 # Load JSON 데이터
-BASE_DIR = Path(__file__).parent.parent  # services의 상위 디렉토리인 src로 변경
+BASE_DIR = Path(__file__).parent.parent.parent  # api 디렉토리로 변경
 DATA_DIR = BASE_DIR / "data"
-STATIC_DATA_DIR = DATA_DIR / "static"
+STATIC_DATA_DIR = BASE_DIR / "static" / "chatbot"
 
 # 파일 경로 설정
 SYMPTOM_MAP_FILE = STATIC_DATA_DIR / "symptom_synonyms_updated.json"

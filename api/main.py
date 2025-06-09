@@ -6,6 +6,7 @@ from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from api.core.config import settings
 from api.db.session import engine
 from api.routers import (
+    chatbot,
     dog,
     dog_image,
     emergency,
@@ -70,3 +71,4 @@ app.include_router(medic.router, prefix="/medication", tags=["Medication"])
 app.include_router(vaccine.router, prefix="/vaccine", tags=["Vaccine"])
 app.include_router(emergency.router, prefix="/emergency", tags=["Emergency"])
 app.include_router(food.router, prefix="/food", tags=["Food"])
+app.include_router(chatbot.router, prefix="/chatbot", tags=["Chatbot"])

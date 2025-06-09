@@ -45,14 +45,18 @@ class Settings(BaseSettings):
 
     # 환경 설정
     DEBUG: bool = False
-    #ENVIRONMENT: str = "production"
-    ENVIRONMENT: str = "development"
+    ENVIRONMENT: str = "production"
+    #ENVIRONMENT: str = "development"
 
     # AWS S3 설정
     AWS_ACCESS_KEY_ID: str = ""
     AWS_SECRET_ACCESS_KEY: str = ""
     AWS_S3_BUCKET_NAME: str = ""
     AWS_S3_REGION: str = "ap-northeast-2"
+
+    # ChatBot 설정
+    OPENAI_API_KEY: str = ""
+    GPT_MODEL: str = "gpt-4-turbo-preview"
 
     class Config:
         case_sensitive = True

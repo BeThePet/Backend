@@ -19,14 +19,14 @@ from api.db.models import (
     NewSymptom,
     SymptomLog,
 )
-
-from ..schemas.chat import (
+from api.schemas.chat import (
     ChatHistoryResponse,
     ChatMessageCreate,
     ChatRoomCreate,
     ChatRoomResponse,
     SymptomLogCreate,
 )
+
 from .symptom_matcher import match_diseases, normalize_symptoms
 
 
@@ -50,9 +50,9 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 symptom_cache = {}
 
 # 파일 경로 설정
-BASE_DIR = Path(__file__).parent.parent  # services의 상위 디렉토리인 src로 변경
+BASE_DIR = Path(__file__).parent.parent.parent  # api 디렉토리로 변경
 DATA_DIR = BASE_DIR / "data"
-STATIC_DATA_DIR = DATA_DIR / "static"
+STATIC_DATA_DIR = BASE_DIR / "static" / "chatbot"
 DYNAMIC_DATA_DIR = DATA_DIR / "dynamic"
 LOG_DIR = DYNAMIC_DATA_DIR / "logs"
 LOG_DIR.mkdir(parents=True, exist_ok=True)
@@ -63,10 +63,10 @@ SYMPTOMS_LOG_FILE = LOG_DIR / "symptoms_log.json"
 DISEASE_DESCRIPTIONS_FILE = STATIC_DATA_DIR / "disease_descriptions.json"
 
 # Static 파일 로드
-current_dir = Path(__file__).parent.parent
-with open(current_dir / "static" / "disease_map.json", "r", encoding="utf-8") as f:
+current_dir = STATIC_DATA_DIR
+with open(current_dir / "disease_map.json", "r", encoding="utf-8") as f:
     DISEASE_MAP = json.load(f)
-with open(current_dir / "static" / "allergy_map.json", "r", encoding="utf-8") as f:
+with open(current_dir / "allergy_map.json", "r", encoding="utf-8") as f:
     ALLERGY_MAP = json.load(f)
 
 
@@ -534,8 +534,7 @@ def clear_cache():
 class ChatbotService:
     def __init__(self, db: Session):
         self.db = db
-        # 대화 상태 관리를 위한 딕셔너리
-        # {chat_room_id: {"state": "waiting_for_additional", "symptoms": {"known": [...], "new": [...]}}}
+        # 대화 상태를 메모리에 저장하기 위한 딕셔너리
         self.chat_states = {}
 
     def get_dog_info(self, user_id: int) -> Optional[dict]:
@@ -663,37 +662,92 @@ class ChatbotService:
         # 이전 대화 내역 조회
         chat_history = self.get_chat_history(chat_room_id)
 
-        # 현재 대화 상태 확인
-        current_state = self.chat_states.get(str(chat_room_id), {"state": "initial"})
+        # 현재 대화 상태 확인 (DB에서)
+        current_state = self._get_chat_state(chat_room_id)
+
+        print(f"🔍 현재 대화 상태: {current_state}")
+        print(f"🔍 사용자 입력: {message_data.content}")
 
         if current_state["state"] == "initial":
-            # 첫 메시지 처리
-            known_symptoms, new_symptoms = self._extract_symptoms_with_gpt(
-                message_data.content
+            # 첫 메시지이거나 새로운 대화 시작
+            # 대화 이력이 비어있으면 완전히 새로운 대화
+            user_messages_count = len(
+                [msg for msg in chat_history if msg.role == "user"]
             )
 
-            # 대화 상태 업데이트
-            self.chat_states[str(chat_room_id)] = {
-                "state": "waiting_for_additional",
-                "symptoms": {"known": known_symptoms, "new": new_symptoms},
-            }
+            if user_messages_count <= 1:  # 첫 메시지
+                print("🔍 플로우: 첫 메시지 처리")
+                known_symptoms, new_symptoms = self._extract_symptoms_with_gpt(
+                    message_data.content
+                )
 
-            # 추가 증상 문의 메시지 생성
-            response_content = self._generate_additional_symptoms_prompt(
-                known_symptoms, new_symptoms
-            )
+                # 대화 상태 업데이트
+                self._update_chat_state(
+                    chat_room_id,
+                    {
+                        "state": "waiting_for_additional",
+                        "symptoms": {"known": known_symptoms, "new": new_symptoms},
+                    },
+                )
+
+                # 추가 증상 문의 메시지 생성
+                response_content = self._generate_additional_symptoms_prompt(
+                    known_symptoms, new_symptoms
+                )
+            else:
+                # 기존 대화가 있는 경우, 과거 이력을 반영하여 증상 추출
+                print("🔍 플로우: 기존 대화 이력 반영")
+                # 과거 대화에서 증상 추출
+                past_symptoms_text = " ".join(
+                    [msg.content for msg in chat_history if msg.role == "user"]
+                )
+                known_symptoms, new_symptoms = self._extract_symptoms_with_gpt(
+                    past_symptoms_text + " " + message_data.content
+                )
+
+                # 대화 상태 업데이트
+                self._update_chat_state(
+                    chat_room_id,
+                    {
+                        "state": "waiting_for_additional",
+                        "symptoms": {"known": known_symptoms, "new": new_symptoms},
+                    },
+                )
+
+                # 추가 증상 문의 메시지 생성
+                response_content = self._generate_additional_symptoms_prompt(
+                    known_symptoms, new_symptoms
+                )
+
         elif current_state["state"] == "waiting_for_additional":
+            print("🔍 플로우: 추가 증상 처리")
             # 추가 증상 처리
-            additional_known, additional_new = self._extract_symptoms_with_gpt(
-                message_data.content
-            )
+            if (
+                "없음" in message_data.content.lower()
+                or "없어요" in message_data.content.lower()
+            ):
+                # 추가 증상이 없다고 답변한 경우
+                all_known = current_state["symptoms"]["known"]
+                all_new = current_state["symptoms"]["new"]
+            else:
+                # 추가 증상 추출
+                additional_known, additional_new = self._extract_symptoms_with_gpt(
+                    message_data.content
+                )
 
-            # 기존 증상과 추가 증상 합치기
-            all_known = list(set(current_state["symptoms"]["known"] + additional_known))
-            all_new = list(set(current_state["symptoms"]["new"] + additional_new))
+                # 기존 증상과 추가 증상 합치기
+                all_known = list(
+                    set(current_state["symptoms"]["known"] + additional_known)
+                )
+                all_new = list(set(current_state["symptoms"]["new"] + additional_new))
+
+            # 디버깅 로그
+            print(f"🔍 디버깅: 기존 증상 = {current_state['symptoms']['known']}")
+            print(f"🔍 디버깅: 추가 증상 입력 = {message_data.content}")
+            print(f"🔍 디버깅: 최종 모든 증상 = {all_known + all_new}")
 
             # 대화 상태 초기화
-            self.chat_states[str(chat_room_id)] = {"state": "initial"}
+            self._update_chat_state(chat_room_id, {"state": "initial"})
 
             # 최종 응답 생성
             response_content = self._generate_response(
@@ -771,8 +825,9 @@ class ChatbotService:
         chat_history: List[ChatMessage],
     ) -> str:
         """챗봇 응답 생성"""
-        # Rule 기반 질병 매칭 시도
-        rule_results = match_diseases(known_symptoms) if known_symptoms else None
+        # Rule 기반 질병 매칭 시도 (known + new 증상 모두 포함)
+        all_symptoms = known_symptoms + new_symptoms
+        rule_results = match_diseases(all_symptoms) if all_symptoms else None
 
         if rule_results and rule_results[0][1] >= 0.3:  # 신뢰도 30% 이상
             return self._format_rule_based_response(rule_results, dog_info)
@@ -867,7 +922,7 @@ class ChatbotService:
 - [관찰할 점 2]
 
 **권장사항**
-- 수의사 상담 필요 여부와 응급도
+- 수의사 상담 필요 여부와 응급도(필수적으로 명시해야함!!!)
 - 가정에서 할 수 있는 응급처치 (구체적으로)
 """
 
@@ -945,6 +1000,54 @@ class ChatbotService:
         self.db.commit()
         self.db.refresh(symptom_log)
         return symptom_log
+
+    def _get_chat_state(self, chat_room_id: UUID) -> dict:
+        """대화 상태 조회 (ChatMessage의 마지막 AI 응답을 분석하여 상태 판단)"""
+        # 최근 2개 메시지 조회 (사용자 메시지 + AI 응답)
+        recent_messages = (
+            self.db.query(ChatMessage)
+            .filter(ChatMessage.chat_room_id == chat_room_id)
+            .order_by(ChatMessage.created_at.desc())
+            .limit(2)
+            .all()
+        )
+
+        if not recent_messages:
+            return {"state": "initial"}
+
+        # 가장 최근 AI 응답 확인
+        last_ai_message = None
+        for msg in recent_messages:
+            if msg.role == "assistant":
+                last_ai_message = msg
+                break
+
+        if not last_ai_message:
+            return {"state": "initial"}
+
+        # AI 응답 내용으로 상태 판단
+        if "추가 증상이나 상태가 있나요?" in last_ai_message.content:
+            # 이전 사용자 메시지에서 증상 추출
+            user_message = None
+            for msg in reversed(recent_messages):
+                if msg.role == "user":
+                    user_message = msg
+                    break
+
+            if user_message:
+                known_symptoms, new_symptoms = self._extract_symptoms_with_gpt(
+                    user_message.content
+                )
+                return {
+                    "state": "waiting_for_additional",
+                    "symptoms": {"known": known_symptoms, "new": new_symptoms},
+                }
+
+        return {"state": "initial"}
+
+    def _update_chat_state(self, chat_room_id: UUID, state: dict):
+        """대화 상태 업데이트 (메모리에 저장 - 필요시 DB로 확장 가능)"""
+        self.chat_states[str(chat_room_id)] = state
 
 
 if __name__ == "__main__":

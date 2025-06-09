@@ -44,11 +44,23 @@ class ChatRoomResponse(TimeStampSchema):
 
 class ChatMessageCreate(BaseModel):
     content: str
-    user_id: int
+    user_id: Optional[int] = None
+
+
+class ChatMessageResponse(BaseModel):
+    id: UUID
+    content: str
+    role: str
+    created_at: datetime
+    updated_at: datetime
+    deleted_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
 
 
 class ChatHistoryResponse(BaseModel):
-    messages: List[ChatMessage]
+    messages: List[ChatMessageResponse]
     dog_info: Optional[dict] = None  # 반려견 정보
 
 
