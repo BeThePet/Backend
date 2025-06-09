@@ -5,9 +5,19 @@ from fastapi.middleware.trustedhost import TrustedHostMiddleware
 
 from api.core.config import settings
 from api.db.session import engine
-from api.routers import dog, dog_image, emergency
-from api.routers import food_test as food
-from api.routers import health, mbti, medic, option, report, user, vaccine
+from api.routers import (
+    dog,
+    dog_image,
+    emergency,
+    food,
+    health,
+    mbti,
+    medic,
+    option,
+    report,
+    user,
+    vaccine,
+)
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
