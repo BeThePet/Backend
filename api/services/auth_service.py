@@ -30,22 +30,30 @@ class AuthService:
 
     @staticmethod
     def set_auth_cookies(response: Response, access_token: str, refresh_token: str):
-        # 로컬 개발용 간단한 설정
+        # 환경에 따른 쿠키 설정
+        is_production = settings.ENVIRONMENT == "production"
+
         response.set_cookie(
             key="access_token",
             value=access_token,
             httponly=True,
-            samesite="Lax",  # 로컬에서는 Lax로 충분
-            secure=False,  # HTTP 허용
+            samesite=(
+                "None" if is_production else "Lax"
+            ),  # 크로스 도메인에서는 None 필요
+            secure=is_production,  # HTTPS에서만 secure=True
             path="/",
+            domain=(
+                ".yoon.today" if is_production else None
+            ),  # 프로덕션에서는 도메인 설정
         )
         response.set_cookie(
             key="refresh_token",
             value=refresh_token,
             httponly=True,
-            samesite="Lax",
-            secure=False,
+            samesite="None" if is_production else "Lax",
+            secure=is_production,
             path="/",
+            domain=".yoon.today" if is_production else None,
         )
         return response
 
@@ -74,8 +82,11 @@ class AuthService:
 
     @staticmethod
     def clear_auth_cookies(response: Response):
-        response.delete_cookie("access_token", path="/")
-        response.delete_cookie("refresh_token", path="/")
+        is_production = settings.ENVIRONMENT == "production"
+        domain = ".yoon.today" if is_production else None
+
+        response.delete_cookie("access_token", path="/", domain=domain)
+        response.delete_cookie("refresh_token", path="/", domain=domain)
         return response
 
     @staticmethod
@@ -89,13 +100,15 @@ class AuthService:
             email = payload.get("sub")
             new_access_token = TokenManager.create_access_token(data={"sub": email})
 
+            is_production = settings.ENVIRONMENT == "production"
             response.set_cookie(
                 key="access_token",
                 value=new_access_token,
                 httponly=True,
-                samesite="Lax",
-                secure=False,
+                samesite="None" if is_production else "Lax",
+                secure=is_production,
                 path="/",
+                domain=".yoon.today" if is_production else None,
             )
             return new_access_token
         except:
