@@ -194,9 +194,13 @@ class FoodDataImporter:
 
 def main():
     """메인 실행 함수"""
-    # CSV 파일 경로
+    # CSV 파일 경로 (컨테이너 환경에 맞게 수정)
     csv_file_path = (
-        project_root / "foodrecomender" / "data" / "dog_food_4500_with_nutrients.csv"
+        project_root
+        / "api"
+        / "foodrecomender"
+        / "data"
+        / "dog_food_4500_with_nutrients.csv"
     )
 
     if not csv_file_path.exists():

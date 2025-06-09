@@ -1,7 +1,7 @@
 from typing import Dict
 
 from core.security import get_current_user
-from db.models import User
+from db.models import Dog, User
 from db.session import get_db
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
@@ -98,6 +98,80 @@ def get_current_recommendations(
             "status": "success",
             "user_id": current_user.id,
             "recommendations": all_recommendations,
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"추천 조회 실패: {str(e)}")
+
+
+@router.get("/recommend-current")
+def recommend_for_current_user(
+    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+):
+    """현재 사용자의 강아지에 대한 새로운 사료 추천 생성"""
+    try:
+        from services.food_service import FoodRecommendationService
+
+        # 현재 사용자의 강아지 조회 (한 마리 가정)
+        dog = db.query(Dog).filter(Dog.user_id == current_user.id).first()
+
+        if not dog:
+            raise HTTPException(status_code=404, detail="등록된 반려견이 없습니다.")
+
+        service = FoodRecommendationService(db)
+        recommendations = service.get_recommendations(dog.id, current_user.id)
+
+        return {
+            "status": "success",
+            "dog_id": dog.id,
+            "dog_name": dog.name,
+            "recommendations": recommendations,
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"사료 추천 실패: {str(e)}")
+
+
+@router.get("/recommendations/latest")
+def get_latest_recommendation(
+    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+):
+    """현재 사용자의 최신 추천 기록 조회"""
+    try:
+        from db.models import Dog, FoodRecommendationHistory
+        from sqlalchemy import desc
+
+        # 현재 사용자의 강아지 조회
+        dog = db.query(Dog).filter(Dog.user_id == current_user.id).first()
+
+        if not dog:
+            raise HTTPException(status_code=404, detail="등록된 반려견이 없습니다.")
+
+        # 최신 추천 기록 조회
+        latest_recommendation = (
+            db.query(FoodRecommendationHistory)
+            .filter(FoodRecommendationHistory.dog_id == dog.id)
+            .order_by(desc(FoodRecommendationHistory.created_at))
+            .first()
+        )
+
+        if not latest_recommendation:
+            return {
+                "status": "success",
+                "dog_id": dog.id,
+                "dog_name": dog.name,
+                "has_recommendation": False,
+                "message": "아직 추천 기록이 없습니다.",
+            }
+
+        return {
+            "status": "success",
+            "dog_id": dog.id,
+            "dog_name": dog.name,
+            "has_recommendation": True,
+            "recommendation_id": latest_recommendation.id,
+            "last_recommended_at": latest_recommendation.created_at.isoformat(),
+            "confidence_score": latest_recommendation.confidence_score,
+            "total_recommendations": len(latest_recommendation.recommendations),
+            "recommendations": latest_recommendation.recommendations,
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"추천 조회 실패: {str(e)}")
