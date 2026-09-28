@@ -11,11 +11,14 @@
 | 구분 | 결과 |
 |---|---:|
 | GitHub Dependabot 기본 브랜치 병합 전 | 106건 |
+| GitHub Dependabot 재계산 후 열린 경고 | **0건** |
 | 병합된 `develop` 루트 환경 pip-audit (49개 패키지) | 0건 |
 | 병합된 `develop` 챗봇 환경 pip-audit (52개 패키지) | 0건 |
 | Semgrep `auto` | 0건 |
 
 GitHub의 106건은 병합 전 기본 브랜치 기준이다. 보안 브랜치가 `release/2` 계열에서 생성되어 있어 일반 merge 시 무관한 `Prod` 커밋과 56개 파일 변경이 함께 들어오는 구조였다. 따라서 보안 커밋 `820bcff`, `0eadc69`만 `develop`에 선택 병합하고, `develop` 의존성을 기준으로 두 lockfile을 새로 해석했다. 루트와 `chatbot/` 가상환경 모두 `No known vulnerabilities found`를 확인했다.
+
+`develop` 푸시 직후 GitHub는 비동기 재계산 전 값 106건을 유지했다. 약 2분 뒤 챗봇 lockfile이 먼저 처리되어 55건으로 줄었고, 약 3분 뒤 루트 lockfile까지 처리되어 `Open 0`, `Closed 108`을 확인했다. 닫힌 108건은 이번에 `Fixed` 처리된 기존 106건과 작업 전부터 닫혀 있던 2건의 합계다.
 
 ## 핵심 업데이트·교체
 
