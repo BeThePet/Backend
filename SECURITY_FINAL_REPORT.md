@@ -3,7 +3,7 @@
 - 점검일: 2026-09-29
 - 대상 저장소: `BeThePet/Backend`
 - 최종 기준 브랜치: `develop`
-- 최종 반영 커밋: `0827a7a`
+- 최종 반영 커밋: `3c4cd31`
 
 ## 최종 결론
 
@@ -64,4 +64,3 @@ pip-audit --path .venv/lib/python3.12/site-packages -f json -o pip-audit.after.j
 poetry check
 docker build --check --progress=plain .
 ```
-
