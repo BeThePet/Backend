@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-from jose import JWTError, jwt
+import jwt
 
 from api.core.config import settings
 

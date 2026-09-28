@@ -5,7 +5,7 @@ from core.token_manager import TokenManager
 from db.models import User
 from db.session import get_db
 from fastapi import Depends, HTTPException, Request, WebSocket, status
-from jose import ExpiredSignatureError, JWTError
+from jwt import ExpiredSignatureError, InvalidTokenError
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
@@ -35,7 +35,7 @@ def get_current_user(request: Request, db: Session = Depends(get_db)) -> User:
         return user
     except ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Access token이 만료되었습니다.")
-    except JWTError:
+    except InvalidTokenError:
         raise HTTPException(status_code=401, detail="Access token이 유효하지 않습니다.")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"서버 오류: {str(e)}")
@@ -69,7 +69,7 @@ async def get_current_websocket_user(
         return user
     except ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Access token이 만료되었습니다.")
-    except JWTError:
+    except InvalidTokenError:
         raise HTTPException(status_code=401, detail="Access token이 유효하지 않습니다.")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"서버 오류: {str(e)}")
