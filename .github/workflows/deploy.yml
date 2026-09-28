@@ -10,10 +10,12 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v3
+    # v3 pinned to an immutable commit to prevent tag-repointing attacks.
+    - uses: actions/checkout@a37ce9120846195fa4ece8f58b268e6043cb2f26
 
     - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v1
+      # v1 pinned to an immutable commit to prevent tag-repointing attacks.
+      uses: aws-actions/configure-aws-credentials@6a64f289c4a4b67a1e2c44cc4bd9d6f7bc59b156
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -21,7 +23,8 @@ jobs:
 
     - name: Login to Amazon ECR
       id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v1
+      # v1 pinned to an immutable commit to prevent tag-repointing attacks.
+      uses: aws-actions/amazon-ecr-login@5a88a04c91d5c6f97aae0d9be790e64d9b1d47b7
 
     - name: Build, tag, and push image to Amazon ECR
       env:
@@ -33,7 +36,8 @@ jobs:
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
     - name: Deploy to EC2
-      uses: appleboy/ssh-action@master
+      # master pinned to the reviewed commit to prevent branch-repointing attacks.
+      uses: appleboy/ssh-action@c4f70287fc37c43b14b30b407224bbbc8e8c6327
       with:
         host: ${{ secrets.EC2_HOST }}
         username: ${{ secrets.EC2_USERNAME }}
