@@ -9,6 +9,14 @@ from .websocket.router import router as websocket_router
 # Load environment variables
 load_dotenv()
 
+cors_origins = [
+    origin.strip()
+    for origin in os.getenv(
+        "CHATBOT_CORS_ORIGINS", "http://localhost:3000,https://yoon.today"
+    ).split(",")
+    if origin.strip()
+]
+
 app = FastAPI(
     title="BethePet Chatbot Service",
     description="WebSocket based chatbot service for pet healthcare",
@@ -18,7 +26,7 @@ app = FastAPI(
 # CORS 설정
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 실제 운영 환경에서는 구체적인 origin으로 변경
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

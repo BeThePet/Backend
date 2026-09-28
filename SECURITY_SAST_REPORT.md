@@ -1,7 +1,8 @@
 # SAST 보안 점검 및 조치 보고서
 
 - 점검일: 2026-09-29
-- 작업 브랜치: `security/sast-remediation-20260929`
+- 반영 대상: GitHub 기본 브랜치 `develop`
+- 원본 보안 브랜치: `security/sast-remediation-20260929`
 - 도구: Semgrep 1.178.0, Community `auto` 규칙
 - 원본/조치 후 산출물: `semgrep_result.before.json`, `semgrep_result.after.json`
 
@@ -9,10 +10,12 @@
 
 | 구분 | 검사 파일 | 실행 규칙 | 검출 건수 |
 |---|---:|---:|---:|
-| 조치 전 | 94 | 344 | 5 |
-| 조치 후 | 101 | 345 | 0 |
+| 보안 브랜치 조치 전 | 94 | 344 | 5 |
+| 보안 브랜치 조치 후 | 101 | 345 | 0 |
+| `develop` 선택 병합 후 추가 검출 | 119 | 345 | 5 |
+| `develop` 최종 | 120 | 345 | 0 |
 
-초기 5건은 GitHub Actions 가변 참조 4건과 root 컨테이너 1건이었다.
+첫 5건은 GitHub Actions 가변 참조 4건과 API root 컨테이너 1건이었다. 이후 `develop`에만 있던 챗봇·Nginx 코드까지 통합 스캔해 root 컨테이너 1건, wildcard CORS 1건, H2C smuggling 가능성이 있는 Upgrade 헤더 전달 3건을 추가로 발견했다. 두 단계에서 서로 다른 총 10건을 조치했다.
 
 ## 2. 취약점과 해결
 
@@ -30,12 +33,34 @@ RUN useradd --create-home --uid 10001 appuser \
 USER appuser
 ```
 
+API와 챗봇 Dockerfile 모두 동일 원칙을 적용했다. 챗봇의 쓰기 경로는 기존 `chmod 777` 대신 UID 10001 사용자에게만 소유권을 주었다.
+
+### 챗봇 CORS
+
+credential 요청과 함께 모든 origin을 허용하던 `allow_origins=["*"]`를 제거했다. 기본값은 실제 프런트엔드와 로컬 개발 주소만 허용하고, 배포 환경에서는 쉼표로 구분한 `CHATBOT_CORS_ORIGINS`로 바꿀 수 있다.
+
+```python
+cors_origins = [
+    origin.strip()
+    for origin in os.getenv(
+        "CHATBOT_CORS_ORIGINS", "http://localhost:3000,https://yoon.today"
+    ).split(",")
+    if origin.strip()
+]
+```
+
+### Nginx H2C smuggling 방지
+
+일반 API 프록시에서는 필요하지 않은 `Upgrade`/`Connection: upgrade` 전달을 삭제했다. 로컬 `/ws`는 WebSocket 전용 경로이므로 클라이언트가 보낸 임의 프로토콜 값을 전달하지 않고 `Upgrade websocket` 상수만 백엔드에 보낸다. Semgrep 규칙은 안전한 상수 구성도 동일 패턴으로 검출하므로, 코드 옆에 근거를 기록한 단일 `nosemgrep` 억제를 적용했다.
+
 ## 3. 검증과 트러블슈팅
 
-- Semgrep: 5→0, 종료 코드 0
+- Semgrep: 보안 브랜치 5→0, `develop` 추가분 5→0, 최종 120개 파일·345개 규칙 0건
 - Python `compileall`: 통과
 - GitHub Actions YAML 파싱: 통과
-- Docker `build --check`: 경고 0, 통과
+- API·챗봇 Docker `build --check`: 경고 0, 통과
+- 챗봇 전체 Docker 이미지 빌드 및 Nginx `nginx -t`: 통과
+- 챗봇 CORS allowlist 환경변수 적용과 FastAPI app import: 통과
 - JSON before/after 유효성: 통과
 - `git diff --check`: 통과
 
